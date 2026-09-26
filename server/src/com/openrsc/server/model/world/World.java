@@ -2,6 +2,7 @@ package com.openrsc.server.model.world;
 
 import com.openrsc.server.Server;
 import com.openrsc.server.ServerConfiguration;
+import com.openrsc.server.admin.AdminEventBus;
 import com.openrsc.server.avatargenerator.AvatarGenerator;
 import com.openrsc.server.constants.ItemId;
 import com.openrsc.server.constants.NpcDrops;
@@ -275,7 +276,11 @@ public final class World implements SimpleSubscriber<FishingTrawler>, Runnable {
 	 * Removes a player by their username hash
 	 */
 	public Player removePlayer(final long usernameHash) {
-		return players.removePlayerByHash(usernameHash);
+		final Player removed = players.removePlayerByHash(usernameHash);
+		if (removed != null) {
+			AdminEventBus.getInstance().publishPlayerLoggedOut(getServer(), removed);
+		}
+		return removed;
 	}
 
 	/**
@@ -693,6 +698,7 @@ public final class World implements SimpleSubscriber<FishingTrawler>, Runnable {
 				player.setChargeTimer(player.getCache().getLong("charge_remaining"));
 			}
 
+			AdminEventBus.getInstance().publishPlayerLoggedIn(getServer(), player);
 			return true;
 		}
 		return false;

@@ -15,6 +15,9 @@ Implemented:
 - opt-in enablement through JVM properties
 - typed `ServerStatus`, `WorldStatus`, and `TickMetrics` snapshots
 - `GET /admin/api/status`
+- `GET /admin/api/plugins`
+- `GET /admin/api/players`
+- `GET /admin/api/events` (Server-Sent Events)
 - support for multiple in-process OpenRSC servers through `Server.serversList`
 - frontend Vite proxy to the admin listener
 
@@ -87,6 +90,147 @@ Response shape:
   ]
 }
 ```
+## Live event endpoint
+
+```http
+GET /admin/api/events
+Accept: text/event-stream
+```
+
+The first live event transport uses Server-Sent Events.
+
+Current event types:
+
+```text
+player.logged_in
+player.logged_out
+```
+
+Event envelope:
+
+```json
+{
+  "id": 1,
+  "type": "player.logged_in",
+  "timestampEpochMillis": 1790456525112,
+  "serverName": "Runescape",
+  "data": {
+    "databaseId": 42,
+    "index": 0,
+    "username": "Alice",
+    "combatLevel": 87,
+    "x": 120,
+    "y": 640,
+    "fatigue": 12,
+    "questPoints": 18,
+    "groupId": 10,
+    "groupName": "User"
+  }
+}
+```
+
+The process-local `AdminEventBus` is intentionally bounded:
+
+- 200 recent events retained for short reconnect history
+- 100 queued events per SSE subscriber
+- publishing never blocks gameplay threads
+- a slow subscriber drops its oldest queued event rather than applying back-pressure
+
+Login events are emitted from `World.registerPlayer` after successful registration.
+
+Logout events are emitted from `World.removePlayer` after actual removal from the live player list.
+
+The Admin HTTP transport uses an isolated fixed worker pool so long-lived SSE clients do not block normal status/plugin/player queries.
+
+A synthetic transport smoke test verified:
+
+- SSE event delivery with event IDs
+- recent-event framing
+- concurrent `/admin/api/status` availability while an SSE stream is open
+
+The SPA uses native `EventSource`, de-duplicates events by ID, and invalidates player/status TanStack Query caches on login/logout.
+
+## Online players endpoint
+
+```http
+GET /admin/api/players
+```
+
+This endpoint returns privacy-safe summaries of currently online players grouped by OpenRSC server.
+
+The initial `PlayerSummary` includes:
+
+- database ID
+- runtime entity index
+- username
+- combat level
+- x/y coordinates
+- fatigue
+- quest points
+- group ID/name
+
+It intentionally excludes:
+
+- current/previous IP address
+- private messages
+- recovery/security information
+- account-linkage information
+- passwords/session secrets
+
+The default local world was verified returning:
+
+```json
+{
+  "servers": [
+    {
+      "serverName": "Runescape",
+      "onlineCount": 0,
+      "players": []
+    }
+  ]
+}
+```
+
+The frontend Overview and `/players` route render this real empty state rather than mock users.
+
+For populated validation, the repository's normal single-player workflow runs the client through `make run-client`, which maps to `ant -f Client_Base/build.xml runclient`. The current sparse Admin 2026 checkout does not include the client tree, and the test Mac does not yet have a working Ant setup, so a real populated login remains a follow-up verification task.
+
+## Plugin inventory endpoint
+
+```http
+GET /admin/api/plugins
+```
+
+This endpoint returns one read-only plugin inventory per active OpenRSC server.
+
+Current metadata includes:
+
+- instantiated plugin handler count
+- distinct trigger type count
+- quest count
+- minigame count
+- shop count
+- plugin class name / simple name / package
+- implemented trigger interface names
+- inferred kinds such as quest, minigame, shop, registrar, default-handler, and trigger-handler
+- quest metadata when the plugin implements `QuestInterface`
+- minigame metadata when the plugin implements `MiniGameInterface`
+- current plugin-handler reload state
+
+The implementation adds copied/unmodifiable snapshot accessors to `PluginHandler`. It does **not** expose mutable registration maps, the plugin loader, or live plugin instances.
+
+Observed against the default world:
+
+```text
+instantiatedPlugins: 455
+triggerTypes: 31
+quests: 50
+minigames: 9
+shops: 92
+```
+
+Dragon Slayer was verified as a quest/trigger handler with its actual quest metadata and trigger interfaces.
+
 ## Metric semantics
 
 All OpenRSC timing fields are recorded internally in nanoseconds and are converted to milliseconds in the admin DTO.

@@ -18,6 +18,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Optional process-level HTTP bridge for the Admin 2026 control plane.
@@ -56,9 +58,16 @@ public final class AdminHttpServer {
 
 			httpServer = HttpServer.create(new InetSocketAddress(bindAddress, port), 0);
 			httpServer.createContext("/admin/api/status", AdminHttpServer::handleStatus);
+			httpServer.createContext("/admin/api/plugins", AdminHttpServer::handlePlugins);
+			httpServer.createContext("/admin/api/players", AdminHttpServer::handlePlayers);
+			httpServer.createContext("/admin/api/events", AdminHttpServer::handleEvents);
 
-			executor = Executors.newSingleThreadExecutor(runnable -> {
-				final Thread thread = new Thread(runnable, "Admin2026Http");
+			final AtomicInteger threadNumber = new AtomicInteger(1);
+			executor = Executors.newFixedThreadPool(8, runnable -> {
+				final Thread thread = new Thread(
+					runnable,
+					"Admin2026Http-" + threadNumber.getAndIncrement()
+				);
 				thread.setDaemon(true);
 				return thread;
 			});
@@ -108,6 +117,105 @@ public final class AdminHttpServer {
 			.put("servers", serverStatuses);
 
 		sendJson(exchange, 200, response);
+	}
+
+	private static void handlePlugins(final HttpExchange exchange) throws IOException {
+		if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "GET");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		final List<Server> servers = new ArrayList<>(Server.serversList.values());
+		servers.sort(Comparator.comparing(Server::getName));
+
+		final JSONArray inventories = new JSONArray();
+		for (final Server server : servers) {
+			inventories.put(PluginInventoryStatus.from(server).toJson());
+		}
+
+		final JSONObject response = new JSONObject()
+			.put("generatedAtEpochMillis", System.currentTimeMillis())
+			.put("servers", inventories);
+
+		sendJson(exchange, 200, response);
+	}
+
+	private static void handlePlayers(final HttpExchange exchange) throws IOException {
+		if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "GET");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		final List<Server> servers = new ArrayList<>(Server.serversList.values());
+		servers.sort(Comparator.comparing(Server::getName));
+
+		final JSONArray playerLists = new JSONArray();
+		for (final Server server : servers) {
+			playerLists.put(PlayerListStatus.from(server).toJson());
+		}
+
+		final JSONObject response = new JSONObject()
+			.put("generatedAtEpochMillis", System.currentTimeMillis())
+			.put("servers", playerLists);
+
+		sendJson(exchange, 200, response);
+	}
+
+	private static void handleEvents(final HttpExchange exchange) throws IOException {
+		if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "GET");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		exchange.getResponseHeaders().set("Content-Type", "text/event-stream; charset=utf-8");
+		exchange.getResponseHeaders().set("Cache-Control", "no-cache");
+		exchange.getResponseHeaders().set("X-Accel-Buffering", "no");
+		exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+		exchange.sendResponseHeaders(200, 0);
+
+		final AdminEventBus eventBus = AdminEventBus.getInstance();
+
+		try (
+			AdminEventBus.Subscription subscription = eventBus.subscribe();
+			OutputStream output = exchange.getResponseBody()
+		) {
+			writeSse(output, "retry: 3000\n\n");
+
+			for (final AdminEvent event : eventBus.getRecentSnapshot()) {
+				writeSseEvent(output, event);
+			}
+
+			while (true) {
+				final AdminEvent event = subscription.poll(15, TimeUnit.SECONDS);
+				if (event == null) {
+					writeSse(output, ": keepalive\n\n");
+				} else {
+					writeSseEvent(output, event);
+				}
+			}
+		} catch (final InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		} catch (final IOException ignored) {
+			// Normal path when a browser/tab disconnects from the SSE stream.
+		}
+	}
+
+	private static void writeSseEvent(final OutputStream output, final AdminEvent event)
+		throws IOException {
+		writeSse(
+			output,
+			"id: " + event.getId() + "\n" +
+				"data: " + event.toJson().toString() + "\n\n"
+		);
+	}
+
+	private static void writeSse(final OutputStream output, final String message)
+		throws IOException {
+		output.write(message.getBytes(StandardCharsets.UTF_8));
+		output.flush();
 	}
 
 	private static void sendJson(

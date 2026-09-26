@@ -25,7 +25,10 @@ A working SPA scaffold exists at `admin-2026/web/`.
 Current facts:
 
 - server health/status is live through `GET /admin/api/status`
-- player rows, plugin cards, activity events, and admin actions are still mock/planned
+- admin mutations are still disabled/planned
+- login/logout activity events are live over SSE
+- plugin inventory and the Plugins route are live
+- online player summaries and the Players route are live
 - Vite/React/TypeScript is the frontend runtime
 - Tailwind CSS 4 + shadcn/ui provide the source-owned UI foundation
 - TanStack Router/Query are wired
@@ -40,7 +43,7 @@ For frontend work, preserve the domain-oriented structure described in `docs/gui
 
 ## Current recommended next slice
 
-Prefer **plugin inventory** before player details.
+Prefer **authentication, capability mapping, and audit contract** next. Status, plugin inventory, online-player summaries, and login/logout SSE are live.
 
 The running default world immediately provides substantial plugin data even with zero connected players:
 
@@ -439,23 +442,27 @@ The live status slice is implemented. It currently exposes:
 - stage timings
 - current tick and configured tick interval
 
-### Step 2 — plugin inventory — active next slice
+### Step 2 — plugin inventory — complete
 
-Expose loaded plugin classes, trigger relationships, quest/minigame metadata, and other safe read-only plugin descriptors without exposing mutable plugin instances.
+Live plugin handler/trigger/content inventory is implemented.
 
-### Step 3 — online players
+### Step 3 — online players — complete
 
-Expose small `PlayerSummary` DTOs.
+Live privacy-safe `PlayerSummary` rows are implemented.
 
-### Step 4 — player detail
+### Step 4 — events — complete
 
-Expose a deliberately selected snapshot.
+Bounded login/logout Admin events are live over SSE. Real client lifecycle validation remains a follow-up.
 
-### Step 5 — events
+### Step 5 — auth/capabilities/audit — active next slice
 
-Emit login/logout events first.
+Establish authenticated operator identity, capability checks, and a mutation audit contract before introducing writes.
 
-### Step 6 — one command
+### Step 6 — player detail
+
+Expose a deliberately selected player snapshot.
+
+### Step 7 — one command
 
 Prefer player message as the initial mutation.
 
@@ -470,9 +477,9 @@ It exercises:
 
 without changing durable player state.
 
-### Step 7 — dashboard
+### Step 8 — dashboard refinement
 
-Build only enough UI to exercise the vertical slice.
+Continue building UI only as real backend contracts become available.
 
 ## Git/change discipline
 

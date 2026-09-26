@@ -133,6 +133,48 @@ public final class PluginHandler implements IPluginHandler {
         return (T) pluginInstances.getInstance(type);
     }
 
+    /**
+     * Returns a stable copy of the currently instantiated plugin classes.
+     *
+     * Admin/diagnostic callers must not receive the mutable instance map itself.
+     */
+    public Set<Class<?>> getPluginTypesSnapshot() {
+        synchronized (triggerTypeToInstance) {
+            return Collections.unmodifiableSet(new LinkedHashSet<>(pluginInstances.keySet()));
+        }
+    }
+
+    /**
+     * Returns plugin-class -> trigger-interface registrations as copied metadata.
+     */
+    public Map<Class<?>, Set<Class<?>>> getTriggerRegistrationsSnapshot() {
+        synchronized (triggerTypeToInstance) {
+            final Map<Class<?>, Set<Class<?>>> registrations = new LinkedHashMap<>();
+
+            for (final Map.Entry<Class<?>, Collection<Object>> entry : triggerTypeToInstance.asMap().entrySet()) {
+                final Class<?> triggerType = entry.getKey();
+                for (final Object instance : entry.getValue()) {
+                    registrations
+                        .computeIfAbsent(instance.getClass(), ignored -> new LinkedHashSet<>())
+                        .add(triggerType);
+                }
+            }
+
+            final Map<Class<?>, Set<Class<?>>> snapshot = new LinkedHashMap<>();
+            for (final Map.Entry<Class<?>, Set<Class<?>>> entry : registrations.entrySet()) {
+                snapshot.put(
+                    entry.getKey(),
+                    Collections.unmodifiableSet(new LinkedHashSet<>(entry.getValue()))
+                );
+            }
+            return Collections.unmodifiableMap(snapshot);
+        }
+    }
+
+    public boolean isReloading() {
+        return reloading;
+    }
+
     public Collection<Class<?>> explodeClassTree(Class<?> type) {
         if (type == null) {
             return Collections.emptySet();

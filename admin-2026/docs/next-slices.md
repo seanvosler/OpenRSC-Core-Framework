@@ -4,6 +4,10 @@ _Last updated: 2026-09-26_
 
 This document captures the immediate implementation options after the live server-status milestone.
 
+## Status update
+
+The plugin inventory and online-player summary slices are implemented and live. The login/logout event infrastructure is also implemented over SSE, with real client-driven lifecycle validation still pending. Authentication/capabilities/audit are now the active prerequisite before mutations.
+
 ## Recommendation
 
 Implement **plugin inventory first**, followed by **online player summaries**, then **login/logout events**.

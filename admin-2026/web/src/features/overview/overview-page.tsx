@@ -23,11 +23,13 @@ import {
 import { Background, Controls, ReactFlow } from '@xyflow/react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 
+import { useAdminEvents } from '@/api/queries/admin-events'
+import { usePlayers } from '@/api/queries/players'
+import { usePluginInventory } from '@/api/queries/plugin-inventory'
 import { useServerStatus } from '@/api/queries/server-status'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 function formatMillis(value: number) {
@@ -45,25 +47,6 @@ function formatUptime(milliseconds: number) {
   return `${minutes}m`
 }
 
-const players = [
-  { name: 'Alice', combat: 87, location: 'Lumbridge', hp: 100, activity: 'Woodcutting' },
-  { name: 'VarrokVet', combat: 99, location: 'Varrock', hp: 100, activity: 'Trading' },
-  { name: 'LumbyMage', combat: 92, location: 'Al Kharid', hp: 64, activity: 'High Alchemy' },
-  { name: 'IronOak', combat: 76, location: 'Draynor Manor', hp: 80, activity: 'Dragon Slayer' },
-  { name: 'SeerScout', combat: 61, location: "Seers' Village", hp: 52, activity: 'Exploring' },
-]
-
-const plugins = [
-  { name: 'Dragon Slayer', meta: 'Quest · Content', status: 'Active' },
-  { name: 'Goblin Diplomacy', meta: 'Quest · NPCs', status: 'Active' },
-  { name: 'Clan System', meta: 'Social · Persistent', status: 'Active' },
-  { name: 'Market', meta: 'Economy · Trading', status: 'Active' },
-  { name: 'Holiday Events', meta: 'Seasonal · World', status: 'Warning' },
-  { name: 'Path Trace Overlay', meta: 'Developer · Tools', status: 'Reloadable' },
-  { name: 'Quest Flow Inspector', meta: 'Developer · Tools', status: 'Active' },
-  { name: 'Spawn Debugger', meta: 'Developer · World', status: 'Error' },
-]
-
 const flowNodes = [
   { id: 'player', position: { x: 0, y: 70 }, data: { label: 'Player enters area' }, type: 'input' },
   { id: 'trigger', position: { x: 190, y: 70 }, data: { label: 'NPC Talk Trigger' } },
@@ -79,22 +62,22 @@ const flowEdges = [
   { id: 'd', source: 'plugin', target: 'reward', animated: true },
 ]
 
-const events = [
-  ['14:33', 'Alice logged in', 'Player'],
-  ['14:32', 'Dragon Slayer trigger invoked', 'Plugin'],
-  ['14:31', 'Broadcast sent by Admin Rowan', 'Admin'],
-  ['14:30', 'Market sync completed', 'World'],
-  ['14:28', 'Spawn Debugger reloaded', 'Plugin'],
-]
+function describeAdminEvent(type: string, data: Record<string, unknown>) {
+  const username = typeof data.username === 'string' ? data.username : 'Player'
 
-function statusVariant(status: string) {
-  if (status === 'Error') return 'destructive' as const
-  return 'outline' as const
+  if (type === 'player.logged_in') return `${username} logged in`
+  if (type === 'player.logged_out') return `${username} logged out`
+  return type
 }
 
 export function OverviewPage() {
+  const { events: adminEvents, connectionState: eventConnectionState } = useAdminEvents()
   const statusQuery = useServerStatus()
+  const playersQuery = usePlayers()
+  const pluginQuery = usePluginInventory()
   const server = statusQuery.data?.servers[0]
+  const playerList = playersQuery.data?.servers[0]
+  const pluginInventory = pluginQuery.data?.servers[0]
   const [tickData, setTickData] = useState<Array<{ t: string; ms: number }>>([])
   const lastRecordedTick = useRef<number | null>(null)
 
@@ -119,6 +102,11 @@ export function OverviewPage() {
       : server
         ? 'Connected'
         : 'No servers'
+
+  const pluginCards =
+    pluginInventory?.plugins
+      .filter((plugin) => plugin.quest || plugin.minigame)
+      .slice(0, 8) ?? []
 
   const stats = [
     { label: 'Online Players', value: server ? String(server.world.players) : '—', icon: Users, tone: 'text-emerald-300' },
@@ -149,7 +137,13 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Users className="size-4 text-primary" /> Live Players</CardTitle>
-            <CardDescription>Mock player rows · live count above when connected</CardDescription>
+            <CardDescription>
+              {playerList
+                ? `${playerList.onlineCount} online · privacy-safe summaries`
+                : playersQuery.isError
+                  ? 'Player API unavailable'
+                  : 'Loading online players…'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -158,20 +152,28 @@ export function OverviewPage() {
                   <TableHead>Player</TableHead>
                   <TableHead>Combat</TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>HP</TableHead>
-                  <TableHead>Activity</TableHead>
+                  <TableHead>Fatigue</TableHead>
+                  <TableHead>Group</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {players.map((player) => (
-                  <TableRow key={player.name}>
-                    <TableCell className="font-medium text-sky-100">{player.name}</TableCell>
-                    <TableCell>{player.combat}</TableCell>
-                    <TableCell>{player.location}</TableCell>
-                    <TableCell className="min-w-28"><Progress value={player.hp} className="h-2" /></TableCell>
-                    <TableCell>{player.activity}</TableCell>
+                {playerList?.players.length ? (
+                  playerList.players.slice(0, 5).map((player) => (
+                    <TableRow key={player.databaseId}>
+                      <TableCell className="font-medium text-sky-100">{player.username}</TableCell>
+                      <TableCell>{player.combatLevel}</TableCell>
+                      <TableCell className="font-mono text-xs">{player.x}, {player.y}</TableCell>
+                      <TableCell>{player.fatigue}</TableCell>
+                      <TableCell>{player.groupName}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-20 text-center text-muted-foreground">
+                      {playersQuery.isError ? 'Player data unavailable.' : 'No players are currently online.'}
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -180,22 +182,38 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Boxes className="size-4 text-primary" /> Plugins & Content</CardTitle>
-            <CardDescription>Real and imagined plugin surfaces</CardDescription>
+            <CardDescription>
+              {pluginInventory
+                ? `${pluginInventory.instantiatedPlugins} live handlers · ${pluginInventory.quests} quests · ${pluginInventory.minigames} minigames`
+                : pluginQuery.isError
+                  ? 'Plugin inventory unavailable'
+                  : 'Loading live plugin inventory…'}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2 sm:grid-cols-2">
-            {plugins.map((plugin) => (
-              <div key={plugin.name} className="rounded-md border bg-background/35 p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="text-sm font-medium">{plugin.name}</div>
-                    <div className="text-xs text-muted-foreground">{plugin.meta}</div>
+            {pluginCards.length ? (
+              pluginCards.map((plugin) => (
+                <div key={plugin.className} className="rounded-md border bg-background/35 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {plugin.quest?.name ?? plugin.minigame?.name ?? plugin.simpleName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {plugin.triggerNames.length} triggers · {plugin.kinds.join(', ')}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={plugin.quest?.members || plugin.minigame?.members ? 'border-amber-500/40 text-amber-200' : 'border-emerald-500/40 text-emerald-300'}>
+                      {plugin.quest ? 'Quest' : 'Minigame'}
+                    </Badge>
                   </div>
-                  <Badge variant={statusVariant(plugin.status)} className={plugin.status === 'Active' ? 'border-emerald-500/40 text-emerald-300' : plugin.status === 'Warning' ? 'border-amber-500/40 text-amber-200' : plugin.status === 'Reloadable' ? 'border-sky-500/40 text-sky-300' : ''}>
-                    {plugin.status}
-                  </Badge>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-full rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                {pluginQuery.isError ? 'Start the Admin API to load plugin data.' : 'Waiting for plugin inventory…'}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </section>
@@ -253,16 +271,32 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Coins className="size-4 text-primary" /> Recent Activity</CardTitle>
-            <CardDescription>Representative live event feed</CardDescription>
+            <CardDescription>
+              Live Admin event stream · {eventConnectionState}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
-            {events.map(([time, text, kind]) => (
-              <div key={time + text} className="grid grid-cols-[52px_1fr_auto] gap-2 border-b border-border/50 py-2 text-sm last:border-0">
-                <span className="font-mono text-xs text-muted-foreground">{time}</span>
-                <span>{text}</span>
-                <Badge variant="outline" className="text-[10px]">{kind}</Badge>
+            {adminEvents.length ? (
+              adminEvents.slice(0, 8).map((event) => (
+                <div key={event.id} className="grid grid-cols-[68px_1fr_auto] gap-2 border-b border-border/50 py-2 text-sm last:border-0">
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {new Date(event.timestampEpochMillis).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </span>
+                  <span>{describeAdminEvent(event.type, event.data)}</span>
+                  <Badge variant="outline" className="text-[10px]">{event.serverName}</Badge>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                {eventConnectionState === 'connected'
+                  ? 'Waiting for player login/logout activity…'
+                  : 'Connecting to the live event stream…'}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </section>

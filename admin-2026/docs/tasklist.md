@@ -12,17 +12,15 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ## Doing
 
-### Next vertical slice — plugin inventory
+### Next vertical slice — authentication, capabilities, and audit contract
 
-See `admin-2026/docs/next-slices.md` for the implementation rationale and proposed contracts.
-
-- [ ] Define a safe read-only plugin inventory snapshot from existing `PluginHandler` state.
-- [ ] Expose loaded plugin classes and trigger relationships without leaking live plugin instances.
-- [ ] Include existing quest/minigame metadata where available.
-- [ ] Add `GET /admin/api/plugins` and typed frontend query.
-- [ ] Replace overview mock plugin cards with real OpenRSC plugin data.
-- [ ] Build the first real Plugins route using the shared table pattern.
-- [ ] Keep reload/invocation timing/errors out of this slice unless naturally supported by existing state.
+- [ ] Define the first local-development operator authentication mechanism.
+- [ ] Map existing OpenRSC groups to default dashboard capability bundles.
+- [ ] Define capability identifiers for read and mutation surfaces.
+- [ ] Define transport-safe authenticated-operator/session DTOs.
+- [ ] Define the mutation audit record contract before adding writes.
+- [ ] Add read-only auth/session introspection endpoint.
+- [ ] Keep all mutation endpoints disabled until authorization + audit checks exist.
 
 ### Phase 0 — Inventory and baseline
 
@@ -48,7 +46,7 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 - [x] Add representative overview/player/plugin/metrics/diagram mock UI.
 - [x] Add Vitest + React Testing Library smoke-test baseline.
 - [x] Verify production frontend build succeeds.
-- [ ] Add reusable TanStack `DataTable` abstraction.
+- [x] Add reusable TanStack `DataTable` abstraction.
 - [ ] Add reusable chart/diagram primitives.
 - [ ] Add reusable admin form/action pattern.
 - [ ] Add OpenAPI-generated client/type workflow.
@@ -59,24 +57,27 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 
 ### Phase 1 — Expose
 
-- [ ] Add `PlayerSummary` and `PlayerDetails` DTOs.
-- [ ] Add `PluginSummary` and `PluginDetails` DTOs. (active next slice)
+- [x] Add initial privacy-safe `PlayerSummary` DTO.
+- [ ] Add `PlayerDetails` DTO.
+- [x] Add initial `PluginSummary` inventory DTO.
 - [ ] Add `AdminUtility` descriptor model.
-- [ ] Add online-player and player-detail APIs.
-- [ ] Add plugin inventory API.
+- [x] Add online-player API.
+- [ ] Add player-detail API.
+- [x] Add plugin inventory API.
 - [ ] Add admin utility catalog API.
 - [ ] Expose packet count/timing metrics.
-- [ ] Add internal admin event bus and login/logout events.
-- [ ] Add WebSocket or SSE live event stream.
+- [x] Add bounded internal admin event bus and login/logout events.
+- [x] Add SSE live event stream.
 
 ### Phase 2 — Visualize
 
 - [ ] Replace remaining overview mock data as APIs become available.
-- [ ] Build live player list and player inspector.
-- [ ] Build plugin/content explorer.
+- [x] Build initial live player list.
+- [ ] Build player inspector.
+- [x] Build initial live plugin/content explorer.
 - [ ] Build admin utility catalog UI.
 - [ ] Add packet metric visualizations.
-- [ ] Build live event feed.
+- [x] Build live login/logout event feed.
 - [ ] Build server/world selector.
 - [ ] Add read-only log/history views.
 
@@ -125,6 +126,46 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 
 ## Done
 
+### Login/logout event stream vertical slice — 2026-09-26
+
+- [x] Identify authoritative lifecycle hooks at `World.registerPlayer` and `World.removePlayer`.
+- [x] Add bounded non-blocking process-local `AdminEventBus`.
+- [x] Add transport-safe Admin event envelope with event IDs and timestamps.
+- [x] Emit `player.logged_in` and `player.logged_out` from authoritative world membership changes.
+- [x] Add `GET /admin/api/events` SSE transport with heartbeats and recent-event replay.
+- [x] Move Admin HTTP transport from one worker to an isolated fixed pool so SSE cannot block normal queries.
+- [x] Add frontend `EventSource` hook with event de-duplication.
+- [x] Invalidate/refetch player/status queries on login/logout events.
+- [x] Replace the mock activity feed with the live event stream.
+- [x] Smoke-test an event over SSE while concurrent status queries remain responsive.
+- [x] Browser-verify the live event connection against the running default world.
+- [ ] Perform a real client login/logout and verify lifecycle events end-to-end once client/Ant tooling is available.
+
+### Online player summaries vertical slice — 2026-09-26
+
+- [x] Add privacy-safe `PlayerSummary` / per-server player-list snapshots.
+- [x] Exclude IP addresses, private communications, and recovery/account-security data.
+- [x] Add live `GET /admin/api/players` endpoint.
+- [x] Add typed frontend player client/query and API tests.
+- [x] Remove fake player rows from Overview.
+- [x] Build live searchable/sortable `/players` route with the shared DataTable.
+- [x] Verify the real default world returns `0` online players and renders a truthful empty state.
+- [x] Identify the repository-supported non-empty validation route: single-player mode / `make run-client`.
+- [ ] Perform a real local client login and verify a populated player row once client/Ant tooling is available.
+
+### Plugin inventory vertical slice — 2026-09-26
+
+- [x] Add copied/unmodifiable plugin type and trigger-registration snapshots to `PluginHandler`.
+- [x] Add transport-safe plugin inventory metadata without exposing live plugin instances.
+- [x] Enrich quest/minigame plugins from registered world metadata.
+- [x] Add live `GET /admin/api/plugins` endpoint.
+- [x] Verify 455 handlers, 31 trigger types, 50 quests, 9 minigames, and 92 shops against the running default world.
+- [x] Add typed frontend plugin client/query and API tests.
+- [x] Add reusable TanStack Table v9 `DataTable` foundation.
+- [x] Replace overview mock plugin cards with live OpenRSC content metadata.
+- [x] Build searchable/sortable live `/plugins` route.
+- [x] Browser-verify live plugin counts, Dragon Slayer metadata, and search filtering.
+
 ### Live status vertical slice — 2026-09-26
 
 - [x] Verify the bundled default/Preservation OpenRSC world starts locally against SQLite.
@@ -154,7 +195,10 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 
 - **2026-09-26:** Landed the first live end-to-end slice: OpenRSC runtime → read-only Java Admin API → Vite proxy → TanStack Query → live dashboard status/tick data.
 - **2026-09-26:** Verified the bundled default world boots locally with SQLite and populated plugin/world data.
-- **2026-09-26:** Chose plugin inventory as the next read-only slice because it provides rich live data immediately even with zero connected players; player summaries follow next.
+- **2026-09-26:** Completed the plugin inventory slice with real handler/trigger/content metadata and a live searchable Plugins page.
+- **2026-09-26:** Completed online-player summaries and a live Players page; the default world correctly renders a zero-player empty state.
+- **2026-09-26:** Completed bounded login/logout event plumbing and live SSE activity feed; real client lifecycle validation remains pending.
+- **2026-09-26:** Authentication/capabilities/audit contract is now the active prerequisite for the first mutation.
 
 ## Back Burner
 
