@@ -494,7 +494,7 @@ Implemented and verified:
 
 Still mock/planned:
 
-- player table rows/details
+- player detail inspector beyond the live summary list
 - plugin diagnostics beyond inventory (timing/errors/reload controls)
 - activity/event feed
 - administrative mutations
@@ -502,7 +502,7 @@ Still mock/planned:
 
 The backend status contract and local listener properties are documented in `admin-2026/docs/backend-api.md`.
 
-The plugin inventory is now live. The next implementation milestone is real online-player summaries and a Players route, followed by login/logout events without widening the mutation surface yet.
+Server status, plugin inventory, and online-player summaries are now live. The next implementation milestone is login/logout events feeding the activity stream and player-query invalidation, without widening the mutation surface yet.
 
 ### Local frontend development
 

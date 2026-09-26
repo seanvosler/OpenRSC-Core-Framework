@@ -6,7 +6,7 @@ This document captures the immediate implementation options after the live serve
 
 ## Status update
 
-The plugin inventory slice described below is now implemented and live. Online player summaries are the active next slice.
+The plugin inventory slice described below is implemented and live. Online player summaries are also implemented with a truthful zero-player default-world state. Login/logout events are now the active next slice.
 
 ## Recommendation
 

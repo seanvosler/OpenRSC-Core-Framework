@@ -23,12 +23,12 @@ import {
 import { Background, Controls, ReactFlow } from '@xyflow/react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 
+import { usePlayers } from '@/api/queries/players'
 import { usePluginInventory } from '@/api/queries/plugin-inventory'
 import { useServerStatus } from '@/api/queries/server-status'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 function formatMillis(value: number) {
@@ -45,14 +45,6 @@ function formatUptime(milliseconds: number) {
   if (hours > 0) return `${hours}h ${minutes}m`
   return `${minutes}m`
 }
-
-const players = [
-  { name: 'Alice', combat: 87, location: 'Lumbridge', hp: 100, activity: 'Woodcutting' },
-  { name: 'VarrokVet', combat: 99, location: 'Varrock', hp: 100, activity: 'Trading' },
-  { name: 'LumbyMage', combat: 92, location: 'Al Kharid', hp: 64, activity: 'High Alchemy' },
-  { name: 'IronOak', combat: 76, location: 'Draynor Manor', hp: 80, activity: 'Dragon Slayer' },
-  { name: 'SeerScout', combat: 61, location: "Seers' Village", hp: 52, activity: 'Exploring' },
-]
 
 const flowNodes = [
   { id: 'player', position: { x: 0, y: 70 }, data: { label: 'Player enters area' }, type: 'input' },
@@ -79,8 +71,10 @@ const events = [
 
 export function OverviewPage() {
   const statusQuery = useServerStatus()
+  const playersQuery = usePlayers()
   const pluginQuery = usePluginInventory()
   const server = statusQuery.data?.servers[0]
+  const playerList = playersQuery.data?.servers[0]
   const pluginInventory = pluginQuery.data?.servers[0]
   const [tickData, setTickData] = useState<Array<{ t: string; ms: number }>>([])
   const lastRecordedTick = useRef<number | null>(null)
@@ -141,7 +135,13 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Users className="size-4 text-primary" /> Live Players</CardTitle>
-            <CardDescription>Mock player rows · live count above when connected</CardDescription>
+            <CardDescription>
+              {playerList
+                ? `${playerList.onlineCount} online · privacy-safe summaries`
+                : playersQuery.isError
+                  ? 'Player API unavailable'
+                  : 'Loading online players…'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -150,20 +150,28 @@ export function OverviewPage() {
                   <TableHead>Player</TableHead>
                   <TableHead>Combat</TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>HP</TableHead>
-                  <TableHead>Activity</TableHead>
+                  <TableHead>Fatigue</TableHead>
+                  <TableHead>Group</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {players.map((player) => (
-                  <TableRow key={player.name}>
-                    <TableCell className="font-medium text-sky-100">{player.name}</TableCell>
-                    <TableCell>{player.combat}</TableCell>
-                    <TableCell>{player.location}</TableCell>
-                    <TableCell className="min-w-28"><Progress value={player.hp} className="h-2" /></TableCell>
-                    <TableCell>{player.activity}</TableCell>
+                {playerList?.players.length ? (
+                  playerList.players.slice(0, 5).map((player) => (
+                    <TableRow key={player.databaseId}>
+                      <TableCell className="font-medium text-sky-100">{player.username}</TableCell>
+                      <TableCell>{player.combatLevel}</TableCell>
+                      <TableCell className="font-mono text-xs">{player.x}, {player.y}</TableCell>
+                      <TableCell>{player.fatigue}</TableCell>
+                      <TableCell>{player.groupName}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-20 text-center text-muted-foreground">
+                      {playersQuery.isError ? 'Player data unavailable.' : 'No players are currently online.'}
+                    </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>

@@ -16,6 +16,7 @@ Implemented:
 - typed `ServerStatus`, `WorldStatus`, and `TickMetrics` snapshots
 - `GET /admin/api/status`
 - `GET /admin/api/plugins`
+- `GET /admin/api/players`
 - support for multiple in-process OpenRSC servers through `Server.serversList`
 - frontend Vite proxy to the admin listener
 
@@ -88,6 +89,51 @@ Response shape:
   ]
 }
 ```
+## Online players endpoint
+
+```http
+GET /admin/api/players
+```
+
+This endpoint returns privacy-safe summaries of currently online players grouped by OpenRSC server.
+
+The initial `PlayerSummary` includes:
+
+- database ID
+- runtime entity index
+- username
+- combat level
+- x/y coordinates
+- fatigue
+- quest points
+- group ID/name
+
+It intentionally excludes:
+
+- current/previous IP address
+- private messages
+- recovery/security information
+- account-linkage information
+- passwords/session secrets
+
+The default local world was verified returning:
+
+```json
+{
+  "servers": [
+    {
+      "serverName": "Runescape",
+      "onlineCount": 0,
+      "players": []
+    }
+  ]
+}
+```
+
+The frontend Overview and `/players` route render this real empty state rather than mock users.
+
+For populated validation, the repository's normal single-player workflow runs the client through `make run-client`, which maps to `ant -f Client_Base/build.xml runclient`. The current sparse Admin 2026 checkout does not include the client tree, and the test Mac does not yet have a working Ant setup, so a real populated login remains a follow-up verification task.
+
 ## Plugin inventory endpoint
 
 ```http

@@ -12,16 +12,16 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ## Doing
 
-### Next vertical slice — online player summaries
+### Next vertical slice — login/logout events
 
-See `admin-2026/docs/next-slices.md` for the implementation rationale and proposed contracts.
+See `admin-2026/docs/next-slices.md` for the implementation rationale.
 
-- [ ] Define a small privacy-safe `PlayerSummary` snapshot.
-- [ ] Add server-scoped online-player API.
-- [ ] Add typed frontend player query.
-- [ ] Replace overview mock player rows with live player data.
-- [ ] Build the first real Players route using the shared DataTable.
-- [ ] Establish a practical local-login/test-fixture path for non-empty player verification.
+- [ ] Identify authoritative login/logout insertion points.
+- [ ] Add a bounded internal admin event bus.
+- [ ] Define the first transport-safe login/logout event DTO.
+- [ ] Add SSE or WebSocket read-only event transport.
+- [ ] Invalidate/refetch player queries from login/logout events.
+- [ ] Replace the mock activity feed with live login/logout events.
 
 ### Phase 0 — Inventory and baseline
 
@@ -58,10 +58,12 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 
 ### Phase 1 — Expose
 
-- [ ] Add `PlayerSummary` and `PlayerDetails` DTOs.
+- [x] Add initial privacy-safe `PlayerSummary` DTO.
+- [ ] Add `PlayerDetails` DTO.
 - [x] Add initial `PluginSummary` inventory DTO.
 - [ ] Add `AdminUtility` descriptor model.
-- [ ] Add online-player and player-detail APIs.
+- [x] Add online-player API.
+- [ ] Add player-detail API.
 - [x] Add plugin inventory API.
 - [ ] Add admin utility catalog API.
 - [ ] Expose packet count/timing metrics.
@@ -71,7 +73,8 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 ### Phase 2 — Visualize
 
 - [ ] Replace remaining overview mock data as APIs become available.
-- [ ] Build live player list and player inspector.
+- [x] Build initial live player list.
+- [ ] Build player inspector.
 - [x] Build initial live plugin/content explorer.
 - [ ] Build admin utility catalog UI.
 - [ ] Add packet metric visualizations.
@@ -124,6 +127,18 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 
 ## Done
 
+### Online player summaries vertical slice — 2026-09-26
+
+- [x] Add privacy-safe `PlayerSummary` / per-server player-list snapshots.
+- [x] Exclude IP addresses, private communications, and recovery/account-security data.
+- [x] Add live `GET /admin/api/players` endpoint.
+- [x] Add typed frontend player client/query and API tests.
+- [x] Remove fake player rows from Overview.
+- [x] Build live searchable/sortable `/players` route with the shared DataTable.
+- [x] Verify the real default world returns `0` online players and renders a truthful empty state.
+- [x] Identify the repository-supported non-empty validation route: single-player mode / `make run-client`.
+- [ ] Perform a real local client login and verify a populated player row once client/Ant tooling is available.
+
 ### Plugin inventory vertical slice — 2026-09-26
 
 - [x] Add copied/unmodifiable plugin type and trigger-registration snapshots to `PluginHandler`.
@@ -167,7 +182,8 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale and propos
 - **2026-09-26:** Landed the first live end-to-end slice: OpenRSC runtime → read-only Java Admin API → Vite proxy → TanStack Query → live dashboard status/tick data.
 - **2026-09-26:** Verified the bundled default world boots locally with SQLite and populated plugin/world data.
 - **2026-09-26:** Completed the plugin inventory slice with real handler/trigger/content metadata and a live searchable Plugins page.
-- **2026-09-26:** Online player summaries are now the active read-only slice; login/logout events remain immediately behind them.
+- **2026-09-26:** Completed online-player summaries and a live Players page; the default world correctly renders a zero-player empty state.
+- **2026-09-26:** Login/logout events are now the active slice.
 
 ## Back Burner
 

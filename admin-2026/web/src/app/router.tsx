@@ -2,6 +2,7 @@ import { createRootRoute, createRoute, createRouter } from '@tanstack/react-rout
 
 import { AppShell } from '@/app/shell/app-shell'
 import { OverviewPage } from '@/features/overview/overview-page'
+import { PlayersPage } from '@/features/players/players-page'
 import { PluginsPage } from '@/features/plugins/plugins-page'
 import { PlaceholderPage } from '@/features/shared/placeholder-page'
 
@@ -11,6 +12,12 @@ const overviewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: OverviewPage,
+})
+
+const playersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/players',
+  component: PlayersPage,
 })
 
 const pluginsRoute = createRoute({
@@ -28,8 +35,8 @@ const makePlaceholder = (path: string, title: string, description: string) =>
 
 const routeTree = rootRoute.addChildren([
   overviewRoute,
+  playersRoute,
   pluginsRoute,
-  makePlaceholder('/players', 'Players', 'Live player search, inspection, moderation, and support tools.'),
   makePlaceholder('/world', 'World', 'Entities, shops, spawns, snapshots, maps, and world diagnostics.'),
   makePlaceholder('/utilities', 'Utilities', 'Discoverable wrappers around safe OpenRSC administrative actions.'),
   makePlaceholder('/logs', 'Logs', 'Staff, login, trade, moderation, and operational history.'),
