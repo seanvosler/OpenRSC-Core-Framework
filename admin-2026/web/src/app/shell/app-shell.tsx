@@ -12,6 +12,7 @@ import {
   Wrench,
 } from 'lucide-react'
 
+import { useServerStatus } from '@/api/queries/server-status'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
@@ -27,6 +28,15 @@ const navItems = [
 ] as const
 
 export function AppShell() {
+  const statusQuery = useServerStatus()
+  const server = statusQuery.data?.servers[0]
+  const isConnected = Boolean(server && !statusQuery.isError)
+  const connectionLabel = statusQuery.isPending
+    ? 'Connecting'
+    : isConnected
+      ? 'Online'
+      : 'Disconnected'
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="rsc-header sticky top-0 z-20 flex h-16 items-center gap-4 border-b px-5">
@@ -44,16 +54,16 @@ export function AppShell() {
 
         <div className="ml-auto flex items-center gap-3 text-sm">
           <Badge variant="outline" className="hidden border-primary/40 bg-primary/5 text-primary sm:inline-flex">
-            <Earth className="size-3.5" /> Preservation
+            <Earth className="size-3.5" /> {server?.name ?? 'No server'}
           </Badge>
           <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.7)]" />
-            <span className="hidden text-muted-foreground sm:inline">Online</span>
+            <span className={`size-2 rounded-full ${isConnected ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,.7)]' : 'bg-red-400'}`} />
+            <span className="hidden text-muted-foreground sm:inline">{connectionLabel}</span>
           </div>
           <Separator orientation="vertical" className="h-7" />
           <div className="text-right leading-tight">
-            <div className="font-medium">Admin Rowan</div>
-            <div className="text-xs text-muted-foreground">Administrator</div>
+            <div className="font-medium">Local Operator</div>
+            <div className="text-xs text-muted-foreground">Auth pending</div>
           </div>
         </div>
       </header>
@@ -77,7 +87,7 @@ export function AppShell() {
           <div className="mt-8 hidden rounded-md border border-border/70 bg-card/30 p-3 text-xs text-muted-foreground md:block">
             <div className="mb-2 flex items-center gap-2 font-medium text-foreground">
               <Activity className="size-4 text-primary" />
-              Preservation
+              {server?.name ?? 'OpenRSC'}
             </div>
             “Same world. New possibilities.”
           </div>

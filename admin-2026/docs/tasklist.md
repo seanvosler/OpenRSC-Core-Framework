@@ -14,9 +14,7 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ### Phase 0 — Inventory and baseline
 
-- [ ] Verify local OpenRSC server startup from this fork.
-- [ ] Record supported/recommended Java and Gradle runtime.
-- [ ] Record startup steps, database requirements, and required config.
+- [ ] Record normal startup steps, database requirements, and required config.
 - [ ] Inventory server lifecycle/status data, tick metrics, and packet metrics.
 - [ ] Inventory admin/moderator commands by category.
 - [ ] Inventory plugin system state that can already be exposed.
@@ -48,27 +46,23 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ### Phase 1 — Expose
 
-- [ ] Add isolated Java admin bootstrap.
-- [ ] Add `ServerStatus` and `WorldStatus` DTOs.
 - [ ] Add `PlayerSummary` and `PlayerDetails` DTOs.
 - [ ] Add `PluginSummary` and `PluginDetails` DTOs.
 - [ ] Add `AdminUtility` descriptor model.
-- [ ] Add read-only server/status API.
 - [ ] Add online-player and player-detail APIs.
 - [ ] Add plugin inventory API.
 - [ ] Add admin utility catalog API.
-- [ ] Expose existing tick and packet metrics.
-- [ ] Expose available server/world instances.
+- [ ] Expose packet count/timing metrics.
 - [ ] Add internal admin event bus and login/logout events.
 - [ ] Add WebSocket or SSE live event stream.
 
 ### Phase 2 — Visualize
 
-- [ ] Replace overview mock data with live APIs.
+- [ ] Replace remaining overview mock data as APIs become available.
 - [ ] Build live player list and player inspector.
 - [ ] Build plugin/content explorer.
 - [ ] Build admin utility catalog UI.
-- [ ] Build tick/packet metric visualizations.
+- [ ] Add packet metric visualizations.
 - [ ] Build live event feed.
 - [ ] Build server/world selector.
 - [ ] Add read-only log/history views.
@@ -117,6 +111,23 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - [ ] Add new server capabilities only with explicit rationale and tests.
 
 ## Done
+
+### Live status vertical slice — 2026-09-26
+
+- [x] Verify the bundled default/Preservation OpenRSC world starts locally against SQLite.
+- [x] Record current Java/build compatibility findings in `docs/backend-api.md`.
+- [x] Add isolated, opt-in localhost Admin 2026 HTTP bootstrap.
+- [x] Add `ServerStatus`, `WorldStatus`, and `TickMetrics` transport snapshots.
+- [x] Add read-only `GET /admin/api/status` endpoint.
+- [x] Expose all active in-process servers from `Server.serversList`.
+- [x] Expose live world counts and existing tick-stage metrics.
+- [x] Add typed frontend status client and TanStack Query polling.
+- [x] Add Vite proxy for the local Java admin listener.
+- [x] Replace overview server-health mock values with live OpenRSC status data.
+- [x] Add rolling live tick-duration visualization.
+- [x] Wire shell world name and connection state to the live API.
+- [x] Browser-verify live values from a running OpenRSC world.
+- [x] Add API client tests and document the backend status contract.
 
 ### Project setup
 

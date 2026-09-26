@@ -473,25 +473,36 @@ This is more valuable than a broad empty dashboard shell.
 
 ## Current implementation status
 
-The first frontend scaffold now exists under `admin-2026/web/`.
+The frontend scaffold exists under `admin-2026/web/`, and the first real Java integration is live.
 
 Implemented and verified:
 
 - React + TypeScript + Vite SPA
 - Tailwind CSS 4 + shadcn/ui primitives
 - TanStack Router and TanStack Query providers
-- TanStack Table, Recharts, React Flow, React Hook Form, and Zod dependencies
 - RSC Classic theme tokens and responsive application shell
 - routed areas for Overview, Players, World, Plugins, Utilities, Logs, Developer, and Settings
-- mock-backed overview with server metrics, player table, plugin/content cards, tick chart, plugin-flow diagram, admin utilities, and activity feed
-- reserved `src/api/generated/` location for future OpenAPI-generated client/types
-- Vitest + React Testing Library smoke-test baseline
-- successful production build
-- successful local browser render of the dashboard
+- opt-in localhost Java Admin 2026 HTTP listener
+- typed `ServerStatus`, `WorldStatus`, and `TickMetrics` snapshots
+- live `GET /admin/api/status` endpoint across `Server.serversList`
+- live server/world name, connection state, player count, NPC count, uptime, tick rate, current tick, and tick-stage metrics
+- rolling live tick-duration chart
+- Vite development proxy to the Java admin listener
+- Vitest + React Testing Library coverage for providers and status-client behavior
+- successful production frontend build
+- successful full OpenRSC default-world startup and browser-level live-data verification
 
-The overview is intentionally **mock-backed** today. No Java Admin API has been added yet, and the GUI must not imply that sample values or actions are connected to a live OpenRSC server.
+Still mock/planned:
 
-The next implementation milestone is to inventory the existing OpenRSC runtime surfaces and expose the first real read-only Java contract, beginning with `ServerStatus` / `WorldStatus`.
+- player table rows/details
+- plugin cards/diagnostics
+- activity/event feed
+- administrative mutations
+- authentication/authorization
+
+The backend status contract and local listener properties are documented in `admin-2026/docs/backend-api.md`.
+
+The next implementation milestone is to expose real player and plugin inventories, then add login/logout events without widening the mutation surface yet.
 
 ### Local frontend development
 

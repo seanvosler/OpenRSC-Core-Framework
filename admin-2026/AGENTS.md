@@ -24,14 +24,17 @@ A working SPA scaffold exists at `admin-2026/web/`.
 
 Current facts:
 
-- the overview is mock-backed; do not describe sample values/actions as live server data
+- server health/status is live through `GET /admin/api/status`
+- player rows, plugin cards, activity events, and admin actions are still mock/planned
 - Vite/React/TypeScript is the frontend runtime
 - Tailwind CSS 4 + shadcn/ui provide the source-owned UI foundation
 - TanStack Router/Query are wired
-- Recharts and React Flow are already used on the overview
-- Vitest + React Testing Library have a passing smoke test
+- Recharts displays a live rolling tick-duration series
+- React Flow is already used for the plugin-flow concept
+- Vitest + React Testing Library cover provider and status-client behavior
 - `npm run build` currently succeeds
 - OpenAPI client generation, reusable DataTable/form abstractions, Playwright E2E, and route-level code splitting remain unfinished
+- the current read-only backend contract is documented in `docs/backend-api.md`
 
 For frontend work, preserve the domain-oriented structure described in `docs/gui-stack.md`. Generated API code belongs in `src/api/generated/` and must never be edited manually.
 

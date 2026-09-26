@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+
 import {
   Activity,
   Ban,
@@ -6,7 +8,6 @@ import {
   Coins,
   Database,
   Footprints,
-  HardDrive,
   HeartPulse,
   MessageSquare,
   Radio,
@@ -22,22 +23,27 @@ import {
 import { Background, Controls, ReactFlow } from '@xyflow/react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 
+import { useServerStatus } from '@/api/queries/server-status'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-const stats = [
-  { label: 'Online Players', value: '143', icon: Users, tone: 'text-emerald-300' },
-  { label: 'NPCs', value: '1,284', icon: Skull, tone: 'text-sky-300' },
-  { label: 'Tick', value: '612 ms', icon: Activity, tone: 'text-amber-200' },
-  { label: 'Late', value: '0 ms', icon: Clock3, tone: 'text-emerald-300' },
-  { label: 'Memory', value: '624 MB', icon: HardDrive, tone: 'text-amber-200' },
-  { label: 'Plugins', value: '386', icon: Boxes, tone: 'text-sky-300' },
-  { label: 'Database', value: 'Healthy', icon: Database, tone: 'text-emerald-300' },
-  { label: 'Uptime', value: '3d 14h', icon: Server, tone: 'text-foreground' },
-]
+function formatMillis(value: number) {
+  return `${value < 10 ? value.toFixed(2) : value.toFixed(0)} ms`
+}
+
+function formatUptime(milliseconds: number) {
+  const totalSeconds = Math.floor(milliseconds / 1000)
+  const days = Math.floor(totalSeconds / 86_400)
+  const hours = Math.floor((totalSeconds % 86_400) / 3_600)
+  const minutes = Math.floor((totalSeconds % 3_600) / 60)
+
+  if (days > 0) return `${days}d ${hours}h`
+  if (hours > 0) return `${hours}h ${minutes}m`
+  return `${minutes}m`
+}
 
 const players = [
   { name: 'Alice', combat: 87, location: 'Lumbridge', hp: 100, activity: 'Woodcutting' },
@@ -56,19 +62,6 @@ const plugins = [
   { name: 'Path Trace Overlay', meta: 'Developer · Tools', status: 'Reloadable' },
   { name: 'Quest Flow Inspector', meta: 'Developer · Tools', status: 'Active' },
   { name: 'Spawn Debugger', meta: 'Developer · World', status: 'Error' },
-]
-
-const tickData = [
-  { t: '14:24', ms: 580 },
-  { t: '14:25', ms: 610 },
-  { t: '14:26', ms: 602 },
-  { t: '14:27', ms: 632 },
-  { t: '14:28', ms: 601 },
-  { t: '14:29', ms: 670 },
-  { t: '14:30', ms: 612 },
-  { t: '14:31', ms: 654 },
-  { t: '14:32', ms: 608 },
-  { t: '14:33', ms: 612 },
 ]
 
 const flowNodes = [
@@ -100,6 +93,44 @@ function statusVariant(status: string) {
 }
 
 export function OverviewPage() {
+  const statusQuery = useServerStatus()
+  const server = statusQuery.data?.servers[0]
+  const [tickData, setTickData] = useState<Array<{ t: string; ms: number }>>([])
+  const lastRecordedTick = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!server || server.currentTick === lastRecordedTick.current) return
+
+    const timestamp = statusQuery.data?.generatedAtEpochMillis ?? Date.now()
+    const label = new Date(timestamp).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+
+    setTickData((current) => [...current, { t: label, ms: server.tick.durationMillis }].slice(-30))
+    lastRecordedTick.current = server.currentTick
+  }, [server, statusQuery.data?.generatedAtEpochMillis])
+
+  const apiState = statusQuery.isError
+    ? 'Disconnected'
+    : statusQuery.isPending
+      ? 'Connecting…'
+      : server
+        ? 'Connected'
+        : 'No servers'
+
+  const stats = [
+    { label: 'Online Players', value: server ? String(server.world.players) : '—', icon: Users, tone: 'text-emerald-300' },
+    { label: 'NPCs', value: server ? server.world.npcs.toLocaleString() : '—', icon: Skull, tone: 'text-sky-300' },
+    { label: 'Tick Duration', value: server ? formatMillis(server.tick.durationMillis) : '—', icon: Activity, tone: 'text-amber-200' },
+    { label: 'Late', value: server ? formatMillis(server.tick.lateMillis) : '—', icon: Clock3, tone: server?.tick.lateMillis ? 'text-amber-200' : 'text-emerald-300' },
+    { label: 'Tick Rate', value: server ? `${server.gameTickMillis} ms` : '—', icon: HeartPulse, tone: 'text-foreground' },
+    { label: 'Current Tick', value: server ? server.currentTick.toLocaleString() : '—', icon: Radio, tone: 'text-sky-300' },
+    { label: 'Uptime', value: server ? formatUptime(server.uptimeMillis) : '—', icon: Server, tone: 'text-foreground' },
+    { label: 'Admin API', value: apiState, icon: Database, tone: statusQuery.isError ? 'text-red-300' : 'text-emerald-300' },
+  ]
+
   return (
     <div className="space-y-4 p-4 lg:p-6">
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8">
@@ -118,7 +149,7 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Users className="size-4 text-primary" /> Live Players</CardTitle>
-            <CardDescription>Mock runtime state · 143 online</CardDescription>
+            <CardDescription>Mock player rows · live count above when connected</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -173,13 +204,13 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><HeartPulse className="size-4 text-primary" /> Server Performance</CardTitle>
-            <CardDescription>Tick timing · mock data</CardDescription>
+            <CardDescription>{server ? 'Live tick duration sampled every 2 seconds' : 'Waiting for Admin API'}</CardDescription>
           </CardHeader>
           <CardContent className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={tickData}>
                 <XAxis dataKey="t" stroke="currentColor" tick={{ fontSize: 11 }} />
-                <YAxis domain={[500, 720]} stroke="currentColor" tick={{ fontSize: 11 }} width={42} />
+                <YAxis domain={[0, 'auto']} stroke="currentColor" tick={{ fontSize: 11 }} width={42} />
                 <ChartTooltip contentStyle={{ background: '#171a17', border: '1px solid #6e5b35', borderRadius: 6 }} />
                 <Line type="monotone" dataKey="ms" stroke="#68c477" strokeWidth={2} dot={false} />
               </LineChart>
@@ -205,17 +236,17 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><ShieldAlert className="size-4 text-primary" /> Admin Utilities</CardTitle>
-            <CardDescription>GUI wrappers over explicit server actions</CardDescription>
+            <CardDescription>Planned GUI wrappers · disabled until auth and command APIs exist</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-            <Button variant="outline"><MessageSquare /> Message</Button>
-            <Button variant="outline"><Footprints /> Teleport</Button>
-            <Button variant="outline"><Ban /> Kick</Button>
-            <Button variant="destructive"><Ban /> Ban</Button>
-            <Button variant="outline"><Radio /> Broadcast</Button>
-            <Button variant="outline"><Save /> Save All</Button>
-            <Button variant="outline"><RefreshCcw /> Restart</Button>
-            <Button variant="outline"><Send /> Event Tool</Button>
+            <Button disabled variant="outline"><MessageSquare /> Message</Button>
+            <Button disabled variant="outline"><Footprints /> Teleport</Button>
+            <Button disabled variant="outline"><Ban /> Kick</Button>
+            <Button disabled variant="destructive"><Ban /> Ban</Button>
+            <Button disabled variant="outline"><Radio /> Broadcast</Button>
+            <Button disabled variant="outline"><Save /> Save All</Button>
+            <Button disabled variant="outline"><RefreshCcw /> Restart</Button>
+            <Button disabled variant="outline"><Send /> Event Tool</Button>
           </CardContent>
         </Card>
 

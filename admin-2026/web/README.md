@@ -6,9 +6,23 @@ The frontend is intentionally a SPA. OpenRSC remains the authoritative backend f
 
 ## Current status
 
-The application shell and overview are implemented, but the dashboard is currently **mock-backed**.
+The application shell and overview are implemented, and the server-health portion is connected to the live Java Admin 2026 status API.
 
-The sample player counts, tick values, plugins, events, and admin controls are UI fixtures used to validate the architecture and visual language. They are not yet connected to the Java server.
+Live today:
+
+- server/world name and connection state
+- player and NPC counts
+- tick duration and tick overrun
+- configured tick rate and current tick
+- uptime
+- rolling tick-duration chart
+
+Still mock/planned:
+
+- player table rows/details
+- plugin cards
+- activity feed
+- administrative actions
 
 Current frontend capabilities include:
 
@@ -49,7 +63,7 @@ The production bundle currently includes Recharts and React Flow on the overview
 
 ## API boundary
 
-The future Java Admin API is expected to be the source of truth.
+The Java Admin API is the source of truth for live server data. The first endpoint is `GET /admin/api/status`; additional endpoints should follow the same boundary.
 
 Frontend API access should flow through:
 
@@ -73,7 +87,7 @@ src/api/generated/
 
 Do not edit generated files manually.
 
-Until the Java API exists, mock data should remain obvious and isolated from the future generated-client boundary.
+Until OpenAPI generation exists, handwritten transport types should remain narrow and isolated under `src/api/`. Mock data must remain visibly distinct from live API-backed state.
 
 ## Project structure
 

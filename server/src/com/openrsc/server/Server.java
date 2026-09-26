@@ -3,6 +3,7 @@ package com.openrsc.server;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.openrsc.server.admin.AdminHttpServer;
 import com.openrsc.server.constants.Constants;
 import com.openrsc.server.constants.Skill;
 import com.openrsc.server.content.achievement.AchievementSystem;
@@ -572,6 +573,7 @@ public class Server implements Runnable {
 
 				lastTickTimestamp = serverStartedTime = System.nanoTime();
 				running.set(true);
+				AdminHttpServer.startIfEnabled();
 			} catch (final Throwable t) {
 				LOGGER.error("Exception in server start", t);
 				SystemUtil.exit(1);
@@ -655,6 +657,7 @@ public class Server implements Runnable {
 				}
 
 				running.set(false);
+				AdminHttpServer.stopIfNoServers();
 
 				LOGGER.info("Server unloaded");
 			} catch (final Throwable t) {

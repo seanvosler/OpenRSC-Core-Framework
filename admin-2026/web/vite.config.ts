@@ -10,4 +10,12 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/admin/api': {
+        target: process.env.VITE_ADMIN_API_PROXY_TARGET ?? 'http://127.0.0.1:8787',
+        changeOrigin: true,
+      },
+    },
+  },
 })

@@ -580,9 +580,13 @@ Completed:
 - TanStack Query provider
 - RSC Classic semantic theme tokens
 - application shell/sidebar and placeholder domain routes
-- representative mock overview using shadcn tables/cards, Recharts, and React Flow
-- Vitest + React Testing Library smoke test
-- successful production build and browser render
+- live Java status client through TanStack Query
+- live server/world identity, connection state, world counts, uptime, and tick metrics
+- rolling live Recharts tick-duration visualization
+- mock player/plugin/activity panels kept visibly separate from live data
+- React Flow plugin-flow concept
+- Vitest + React Testing Library provider/status-client tests
+- successful production build and browser render against a running OpenRSC world
 
 Installed but not yet abstracted into shared project patterns:
 
