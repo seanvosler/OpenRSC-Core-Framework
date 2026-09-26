@@ -29,6 +29,8 @@ SyntheticPopulationService
 
 `SyntheticBehavior` owns decisions and state transitions. `SyntheticActions` is the narrow bridge into existing game mechanics.
 
+Starting skills, XP, equipment, inventory, spawn state, and behavior assignment belong to a separate declarative profile/scenario layer; see [`synthetic-profiles.md`](synthetic-profiles.md). Profiles establish fixture state, while behaviors drive normal gameplay after startup.
+
 ## Milestones
 
 1. Behavior runtime

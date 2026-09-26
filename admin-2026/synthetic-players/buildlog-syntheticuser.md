@@ -33,3 +33,6 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - Discovered custom client version 10009 requires login-supplied capability metadata; headless synths now default to explicit protocol capabilities for client 235 (override with `openrsc.synthetic.clientVersion`).
 - REAL MINING PROOF: Synthbot01 at east Varrock mine targeted copper rock 100, invoked authentic `Mining.onOpLoc`, walked as targets changed, reached copper ore 2 and Mining XP 140. No ore/XP mutation exists in synthetic behavior code.
 - Hardened dummy-player output handling to discard queued client packets each tick so channel-less gameplay activity does not accumulate outbound packets.
+
+- 2026-09-26: Documented the next configuration layer in `synthetic-profiles.md`: declarative starting skills/XP, equipment, inventory, spawn, behavior assignment, deterministic seeds, scenario composition, and 20 generalized player archetypes.
+- Profiles are explicitly fixture/setup state; post-start gameplay outcomes remain owned by normal OpenRSC systems.
