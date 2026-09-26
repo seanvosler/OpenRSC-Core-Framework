@@ -1,0 +1,170 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: Georgia, 'Times New Roman', serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  --rsc-stone: #171a17;
+  --rsc-charcoal: #0d100e;
+  --rsc-parchment: #d4c291;
+  --rsc-bronze: #6e5b35;
+  --rsc-gold: #c9a95c;
+  --rsc-forest: #244d2c;
+  --rsc-burgundy: #71342f;
+
+  --background: #0d100e;
+  --foreground: #e8e0c9;
+  --card: #171a17;
+  --card-foreground: #e8e0c9;
+  --popover: #181c18;
+  --popover-foreground: #e8e0c9;
+  --primary: #c9a95c;
+  --primary-foreground: #17120a;
+  --secondary: #242922;
+  --secondary-foreground: #e8e0c9;
+  --muted: #20241f;
+  --muted-foreground: #9e9889;
+  --accent: #28472d;
+  --accent-foreground: #edf4e7;
+  --destructive: #9b463d;
+  --border: #4b432f;
+  --input: #443d2d;
+  --ring: #c9a95c;
+  --chart-1: #68c477;
+  --chart-2: #d0a448;
+  --chart-3: #75a9d4;
+  --chart-4: #b76f64;
+  --chart-5: #b5a2d4;
+  --radius: 0.45rem;
+  --sidebar: #111411;
+  --sidebar-foreground: #d8d0b9;
+  --sidebar-primary: #c9a95c;
+  --sidebar-primary-foreground: #151006;
+  --sidebar-accent: #203923;
+  --sidebar-accent-foreground: #f0ead6;
+  --sidebar-border: #4b432f;
+  --sidebar-ring: #c9a95c;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply m-0 bg-background text-foreground;
+    min-width: 320px;
+    background-image:
+      radial-gradient(circle at 20% 0%, rgba(201, 169, 92, 0.06), transparent 32rem),
+      linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px);
+    background-size: auto, 100% 4px;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .rsc-header {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.035), transparent 46%),
+      #111511;
+    box-shadow: inset 0 -1px rgba(201,169,92,.18), 0 8px 24px rgba(0,0,0,.22);
+  }
+
+  .rsc-sidebar {
+    background:
+      linear-gradient(90deg, rgba(255,255,255,.02), transparent 65%),
+      #101310;
+  }
+
+  .rsc-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #d8bd78;
+    text-shadow: 0 1px 0 #000, 0 0 14px rgba(201,169,92,.1);
+  }
+
+  .panel-etched {
+    border-color: #5d5033;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.025), transparent 28%),
+      #171a17;
+    box-shadow:
+      inset 0 1px rgba(235,214,158,.09),
+      inset 0 -1px rgba(0,0,0,.6),
+      0 8px 24px rgba(0,0,0,.18);
+  }
+
+  .react-flow__node {
+    border: 1px solid #6e5b35;
+    border-radius: 6px;
+    background: #1b211b;
+    color: #e8e0c9;
+    font-size: 12px;
+    box-shadow: inset 0 1px rgba(255,255,255,.04);
+  }
+
+  .react-flow__edge-path {
+    stroke: #c9a95c;
+  }
+
+  .react-flow__controls {
+    border-color: #4b432f;
+    overflow: hidden;
+  }
+
+  .react-flow__controls-button {
+    background: #171a17;
+    border-color: #4b432f;
+    fill: #e8e0c9;
+  }
+}

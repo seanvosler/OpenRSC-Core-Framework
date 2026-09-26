@@ -1,135 +1,137 @@
 # Admin 2026 Tasklist
 
-> This file is the canonical lightweight progress tracker for Admin 2026.
-> Update it whenever work changes project state.
+> Canonical lightweight progress tracker for Admin 2026.
 
-Keep this document short and operational.
+Project sequence:
 
-Use only these states:
+**inventory → expose → visualize → operate → extend**
 
-- **Doing**
-- **To Do**
-- **Done**
-- **Back Burner**
-
-Keep **Doing** to one or two items whenever possible.
+Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** small.
 
 ---
 
 ## Doing
 
-### Phase 0 — OpenRSC architecture and baseline
+### Phase 0 — Inventory and baseline
 
 - [ ] Verify local OpenRSC server startup from this fork.
-- [ ] Record the supported/recommended Java and Gradle runtime.
-- [ ] Record baseline startup steps, database requirements, and required config.
-- [ ] Record baseline tick behavior, JVM memory, and startup/runtime warnings.
-- [ ] Inventory existing server/tick/packet metrics already exposed in `Server.java`.
-- [ ] Inventory existing admin/moderator command capabilities.
-- [ ] Inventory existing logging and database query capabilities relevant to admin.
-- [ ] Define initial DTO, command, and event naming conventions.
-- [ ] Establish initial local-development authentication approach.
-- [ ] Define the minimum verification/test strategy for new admin code.
+- [ ] Record supported/recommended Java and Gradle runtime.
+- [ ] Record startup steps, database requirements, and required config.
+- [ ] Inventory server lifecycle/status data, tick metrics, and packet metrics.
+- [ ] Inventory admin/moderator commands by category.
+- [ ] Inventory plugin system state that can already be exposed.
+- [ ] Inventory logging/history tables and queries.
+- [ ] Inventory snapshots and existing debug utilities.
+- [ ] Define initial DTO/query/command/event conventions.
+- [ ] Define initial authentication and capability approach.
+- [ ] Define backend verification/test strategy.
+### GUI foundation
+
+- [x] Define GUI architecture in `admin-2026/docs/gui-stack.md`.
+- [x] Create local sparse development checkout under `~/rsc/OpenRSC-Core-Framework`.
+- [x] Scaffold `admin-2026/web/` with React + TypeScript + Vite.
+- [x] Add Tailwind CSS 4 and shadcn/ui foundation.
+- [x] Add TanStack Router and TanStack Query providers.
+- [x] Add TanStack Table, Recharts, React Flow, React Hook Form, and Zod dependencies.
+- [x] Add RSC Classic theme tokens and application shell.
+- [x] Add representative overview/player/plugin/metrics/diagram mock UI.
+- [x] Add Vitest + React Testing Library smoke-test baseline.
+- [x] Verify production frontend build succeeds.
+- [ ] Add reusable TanStack `DataTable` abstraction.
+- [ ] Add reusable chart/diagram primitives.
+- [ ] Add reusable admin form/action pattern.
+- [ ] Add OpenAPI-generated client/type workflow.
+- [ ] Add Playwright browser-test baseline.
+- [ ] Add route-level code splitting for heavy visualization packages.
 
 ## To Do
 
-### Phase 1 — Observation
+### Phase 1 — Expose
 
-- [ ] Add isolated admin bootstrap wiring.
-- [ ] Add `ServerStatus` DTO.
-- [ ] Add `WorldStatus` DTO.
-- [ ] Add `PlayerSummary` DTO.
-- [ ] Add `PlayerDetails` DTO.
-- [ ] Add read-only status API.
-- [ ] Add online players API.
-- [ ] Add player details API.
-- [ ] Add internal admin event bus.
-- [ ] Emit player login events.
-- [ ] Emit player logout events.
+- [ ] Add isolated Java admin bootstrap.
+- [ ] Add `ServerStatus` and `WorldStatus` DTOs.
+- [ ] Add `PlayerSummary` and `PlayerDetails` DTOs.
+- [ ] Add `PluginSummary` and `PluginDetails` DTOs.
+- [ ] Add `AdminUtility` descriptor model.
+- [ ] Add read-only server/status API.
+- [ ] Add online-player and player-detail APIs.
+- [ ] Add plugin inventory API.
+- [ ] Add admin utility catalog API.
+- [ ] Expose existing tick and packet metrics.
+- [ ] Expose available server/world instances.
+- [ ] Add internal admin event bus and login/logout events.
 - [ ] Add WebSocket or SSE live event stream.
-- [ ] Expose existing tick-stage metrics.
-- [ ] Expose existing packet count/timing metrics.
-- [ ] Add first dashboard application shell.
-- [ ] Add server/world status view.
-- [ ] Add live online-player list.
-- [ ] Add player inspector.
-- [ ] Add basic live event feed.
 
-### Phase 2 — Controlled operations
+### Phase 2 — Visualize
 
-- [ ] Define dashboard capability mapping from existing OpenRSC staff groups.
-- [ ] Categorize existing OpenRSC admin/mod commands into dashboard-relevant operations.
-- [ ] Add admin mutation audit integration.
-- [ ] Add player message command.
-- [ ] Add player teleport command.
-- [ ] Add player kick command.
-- [ ] Add mute/unmute command.
-- [ ] Add ban/unban command.
-- [ ] Add world broadcast command.
-- [ ] Add save-all command.
-- [ ] Add graceful restart/update command.
-- [ ] Add audit-history view.
+- [ ] Replace overview mock data with live APIs.
+- [ ] Build live player list and player inspector.
+- [ ] Build plugin/content explorer.
+- [ ] Build admin utility catalog UI.
+- [ ] Build tick/packet metric visualizations.
+- [ ] Build live event feed.
+- [ ] Build server/world selector.
+- [ ] Add read-only log/history views.
 
-### Phase 3 — Plugin observability
+### Phase 3 — Operate
 
-- [ ] Inventory current plugin trigger classes and registrations.
-- [ ] Expose loaded plugin inventory.
-- [ ] Instrument plugin invocation counts.
-- [ ] Instrument plugin execution timing.
-- [ ] Capture plugin errors safely.
-- [ ] Expose quest/minigame/shop plugin relationships.
-- [ ] Add plugin/content explorer.
-- [ ] Evaluate controlled plugin reload from the dashboard.
+- [ ] Map OpenRSC groups to dashboard capabilities.
+- [ ] Add mutation audit integration.
+- [ ] Add message, teleport, kick, mute, and ban actions.
+- [ ] Add broadcast, save-all, and graceful restart actions.
+- [ ] Add selected spawn/debug utilities.
+- [ ] Add confirmation/danger levels and audit-history UI.
 
-### Phase 4 — World tooling
+### Phase 4 — Plugin control & diagnostics
 
-- [ ] Add entity inspector.
-- [ ] Add shop inspector.
-- [ ] Add spawn inspection.
-- [ ] Add snapshot browser.
-- [ ] Evaluate existing OpenRSC/2003Scape map assets for a live world map.
-- [ ] Add live world map.
+- [ ] Expose trigger registrations and content relationships.
+- [ ] Add plugin invocation/timing/error metrics where performance-safe.
+- [ ] Add plugin diagnostics UI.
+- [ ] Evaluate controlled plugin reload from GUI.
+- [ ] Add quest/content debugging views.
+
+### Phase 5 — World & developer tooling
+
+- [ ] Add entity, shop, spawn, and snapshot inspectors.
+- [ ] Evaluate and add live world map.
 - [ ] Add pathfinding/debug views.
+- [ ] Add runtime configuration viewer.
+- [ ] Evaluate safe PCAP/debug tooling exposure.
 
-### Phase 5 — Historical analytics
+### Phase 6 — Historical analytics
 
-- [ ] Inventory existing OpenRSC logging tables and portal queries before adding schema.
-- [ ] Add moderation history views.
-- [ ] Add economy-flow analytics.
-- [ ] Add quest/content analytics.
-- [ ] Add operational trend views.
-- [ ] Introduce new historical storage only for gaps not covered by OpenRSC.
+- [ ] Reuse existing moderation/login/trade/chat/staff logs.
+- [ ] Identify historical-data gaps.
+- [ ] Add economy, quest/content, and operational trend analytics.
+- [ ] Add new historical storage only for demonstrated gaps.
 
-### Phase 6 — Multi-world control plane
+### Phase 7 — Multi-world control plane
 
-- [ ] Expose multiple in-process servers from `Server.serversList`.
-- [ ] Add server/world selector in the dashboard.
-- [ ] Add cross-world operations where safe.
-- [ ] Determine whether external pub/sub is actually necessary.
-- [ ] Add external control-plane infrastructure only if deployment topology requires it.
+- [ ] Expose all in-process servers from `Server.serversList`.
+- [ ] Add cross-world overview and safe operations.
+- [ ] Add external pub/sub only if deployment topology requires it.
+
+### Phase 8 — Extend
+
+- [ ] Maintain a documented list of capability gaps discovered through GUI work.
+- [ ] Add new server capabilities only with explicit rationale and tests.
 
 ## Done
 
 ### Project setup
 
-- [x] Create original Admin 2026 project manifest.
-- [x] Create agent guidance.
-- [x] Create canonical lightweight task tracker.
-- [x] Complete initial RSC/RuneScape Classic GitHub landscape research.
-- [x] Select OpenRSC Core Framework as the primary server platform for Admin 2026.
-- [x] Migrate Admin 2026 planning documents into `seanvosler/OpenRSC-Core-Framework`.
-- [x] Rewrite Admin 2026 architecture assumptions for OpenRSC/Java/Netty/database/plugin systems.
+- [x] Create Admin 2026 project manifest and agent guidance.
+- [x] Complete initial RSC ecosystem research.
+- [x] Select OpenRSC Core Framework as the primary platform.
+- [x] Migrate Admin 2026 docs to this fork.
+- [x] Refocus Admin 2026 as a GUI control plane for existing OpenRSC capabilities.
 
 ## Back Burner
 
-- [ ] Redis/pub-sub for distributed multi-process worlds.
-- [ ] Prometheus integration.
-- [ ] Grafana dashboards.
-- [ ] OpenTelemetry tracing.
-- [ ] Separate PostgreSQL analytics store.
-- [ ] Deep packet inspection UI.
-- [ ] Full replay tooling inspired by RSC+.
-- [ ] PCAP browser/inspection UI.
+- [ ] Redis/pub-sub for distributed worlds.
+- [ ] Prometheus / Grafana / OpenTelemetry.
+- [ ] Separate analytics database.
+- [ ] Deep packet inspection and full replay UI.
 - [ ] Containerized all-in-one development stack.
-- [ ] Broad legacy dependency modernization.
+- [ ] Broad dependency modernization.
 - [ ] 3D model/content preview tooling.
