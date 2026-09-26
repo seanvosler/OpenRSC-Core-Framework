@@ -1,6 +1,25 @@
 # Admin 2026 Web
 
-Modern OpenRSC control-plane SPA.
+Modern browser control plane for OpenRSC.
+
+The frontend is intentionally a SPA. OpenRSC remains the authoritative backend for authentication, authorization, server data, live events, and administrative actions.
+
+## Current status
+
+The application shell and overview are implemented, but the dashboard is currently **mock-backed**.
+
+The sample player counts, tick values, plugins, events, and admin controls are UI fixtures used to validate the architecture and visual language. They are not yet connected to the Java server.
+
+Current frontend capabilities include:
+
+- React + TypeScript + Vite
+- Tailwind CSS 4 + shadcn/ui
+- TanStack Router + TanStack Query
+- Recharts metrics visualization
+- React Flow plugin-flow visualization
+- RSC Classic design tokens
+- routed Overview / Players / World / Plugins / Utilities / Logs / Developer / Settings areas
+- Vitest + React Testing Library smoke-test baseline
 
 ## Local development
 
@@ -9,6 +28,14 @@ npm install
 npm run dev
 ```
 
+Vite defaults to:
+
+```text
+http://127.0.0.1:5173/
+```
+
+when explicitly started with `--host 127.0.0.1`.
+
 ## Verification
 
 ```bash
@@ -16,8 +43,62 @@ npm run test
 npm run build
 ```
 
-## Current status
+At the current scaffold checkpoint both commands pass.
 
-The overview is intentionally mock-backed while the Java Admin API is designed. The UI already exercises the planned stack: TanStack Router/Query/Table, shadcn + Tailwind, Recharts, React Flow, and the RSC Classic theme.
+The production bundle currently includes Recharts and React Flow on the overview route, so Vite reports a large-chunk warning. Route/component-level code splitting is tracked as follow-up work rather than being treated as a build failure.
 
-Generated API code will live in `src/api/generated/` and must not be edited manually.
+## API boundary
+
+The future Java Admin API is expected to be the source of truth.
+
+Frontend API access should flow through:
+
+```text
+Java Admin DTOs/routes
+        ↓
+OpenAPI schema
+        ↓
+generated TypeScript client/types
+        ↓
+TanStack Query wrappers
+        ↓
+feature UI
+```
+
+Generated API code belongs in:
+
+```text
+src/api/generated/
+```
+
+Do not edit generated files manually.
+
+Until the Java API exists, mock data should remain obvious and isolated from the future generated-client boundary.
+
+## Project structure
+
+```text
+src/
+├── api/
+├── app/
+│   └── shell/
+├── components/
+│   └── ui/
+├── features/
+│   ├── overview/
+│   └── shared/
+├── lib/
+└── test/
+```
+
+As real features are added, prefer domain folders such as `features/players/`, `features/plugins/`, `features/world/`, and `features/utilities/`.
+
+## Design direction
+
+Primary rule:
+
+> **2003 visual language, 2026 interaction design.**
+
+Retro styling must never replace accessible controls, semantic markup, keyboard navigation, responsive layout, or clear operational states.
+
+See `../docs/gui-stack.md` for the full frontend architecture and `../docs/tasklist.md` for current work status.
