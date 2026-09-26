@@ -2,11 +2,11 @@
 
 Guidance for agentic coding workers contributing to Admin 2026 in the OpenRSC Core Framework.
 
-Read this file, `admin-2026/readme.md`, and `admin-2026/docs/tasklist.md` before implementing substantive Admin 2026 work.
+Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, and `admin-2026/docs/gui-stack.md` before implementing substantive Admin 2026 work.
 
 ## Mission
 
-Build a secure, low-overhead administration and observability layer for OpenRSC without destabilizing or unnecessarily duplicating the existing server framework.
+Build a secure GUI control plane for OpenRSC that inventories, exposes, visualizes, and safely operates existing server capabilities before adding new ones.
 
 The OpenRSC server remains authoritative.
 
@@ -17,6 +17,23 @@ The dashboard:
 - sends explicit validated commands
 - never mutates arbitrary Java objects directly
 - never executes arbitrary in-game command strings supplied by the browser
+
+## Current frontend baseline
+
+A working SPA scaffold exists at `admin-2026/web/`.
+
+Current facts:
+
+- the overview is mock-backed; do not describe sample values/actions as live server data
+- Vite/React/TypeScript is the frontend runtime
+- Tailwind CSS 4 + shadcn/ui provide the source-owned UI foundation
+- TanStack Router/Query are wired
+- Recharts and React Flow are already used on the overview
+- Vitest + React Testing Library have a passing smoke test
+- `npm run build` currently succeeds
+- OpenAPI client generation, reusable DataTable/form abstractions, Playwright E2E, and route-level code splitting remain unfinished
+
+For frontend work, preserve the domain-oriented structure described in `docs/gui-stack.md`. Generated API code belongs in `src/api/generated/` and must never be edited manually.
 
 ## Progress tracking
 
@@ -486,4 +503,4 @@ Before declaring work complete:
 
 ## Primary principle
 
-Make OpenRSC easier to observe and operate without creating a second game server inside the admin system.
+**Expose OpenRSC before extending OpenRSC.** The browser is a presentation/control layer; the OpenRSC runtime remains authoritative.
