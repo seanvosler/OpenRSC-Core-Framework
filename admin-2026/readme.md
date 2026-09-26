@@ -496,13 +496,13 @@ Still mock/planned:
 
 - player detail inspector beyond the live summary list
 - plugin diagnostics beyond inventory (timing/errors/reload controls)
-- activity/event feed
+- broader activity/event types beyond live player login/logout
 - administrative mutations
 - authentication/authorization
 
 The backend status contract and local listener properties are documented in `admin-2026/docs/backend-api.md`.
 
-Server status, plugin inventory, and online-player summaries are now live. The next implementation milestone is login/logout events feeding the activity stream and player-query invalidation, without widening the mutation surface yet.
+Server status, plugin inventory, online-player summaries, and the login/logout SSE activity stream are now live. The next implementation milestone is authenticated operator identity, capability authorization, and the mutation audit contract before any write endpoint is introduced.
 
 ### Local frontend development
 

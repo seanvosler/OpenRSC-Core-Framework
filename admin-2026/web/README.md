@@ -19,7 +19,6 @@ Live today:
 
 Still mock/planned:
 
-- activity feed
 - administrative actions
 
 Current frontend capabilities include:
@@ -31,6 +30,7 @@ Current frontend capabilities include:
 - React Flow plugin-flow visualization
 - live plugin inventory and searchable/sortable Plugins route
 - live privacy-safe online-player API and searchable/sortable Players route
+- live SSE login/logout activity feed with query invalidation
 - reusable TanStack Table v9 DataTable
 - RSC Classic design tokens
 - routed Overview / Players / World / Plugins / Utilities / Logs / Developer / Settings areas

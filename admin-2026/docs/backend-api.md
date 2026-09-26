@@ -17,6 +17,7 @@ Implemented:
 - `GET /admin/api/status`
 - `GET /admin/api/plugins`
 - `GET /admin/api/players`
+- `GET /admin/api/events` (Server-Sent Events)
 - support for multiple in-process OpenRSC servers through `Server.serversList`
 - frontend Vite proxy to the admin listener
 
@@ -89,6 +90,66 @@ Response shape:
   ]
 }
 ```
+## Live event endpoint
+
+```http
+GET /admin/api/events
+Accept: text/event-stream
+```
+
+The first live event transport uses Server-Sent Events.
+
+Current event types:
+
+```text
+player.logged_in
+player.logged_out
+```
+
+Event envelope:
+
+```json
+{
+  "id": 1,
+  "type": "player.logged_in",
+  "timestampEpochMillis": 1790456525112,
+  "serverName": "Runescape",
+  "data": {
+    "databaseId": 42,
+    "index": 0,
+    "username": "Alice",
+    "combatLevel": 87,
+    "x": 120,
+    "y": 640,
+    "fatigue": 12,
+    "questPoints": 18,
+    "groupId": 10,
+    "groupName": "User"
+  }
+}
+```
+
+The process-local `AdminEventBus` is intentionally bounded:
+
+- 200 recent events retained for short reconnect history
+- 100 queued events per SSE subscriber
+- publishing never blocks gameplay threads
+- a slow subscriber drops its oldest queued event rather than applying back-pressure
+
+Login events are emitted from `World.registerPlayer` after successful registration.
+
+Logout events are emitted from `World.removePlayer` after actual removal from the live player list.
+
+The Admin HTTP transport uses an isolated fixed worker pool so long-lived SSE clients do not block normal status/plugin/player queries.
+
+A synthetic transport smoke test verified:
+
+- SSE event delivery with event IDs
+- recent-event framing
+- concurrent `/admin/api/status` availability while an SSE stream is open
+
+The SPA uses native `EventSource`, de-duplicates events by ID, and invalidates player/status TanStack Query caches on login/logout.
+
 ## Online players endpoint
 
 ```http

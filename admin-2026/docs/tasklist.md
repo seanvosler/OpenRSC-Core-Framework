@@ -12,16 +12,15 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ## Doing
 
-### Next vertical slice — login/logout events
+### Next vertical slice — authentication, capabilities, and audit contract
 
-See `admin-2026/docs/next-slices.md` for the implementation rationale.
-
-- [ ] Identify authoritative login/logout insertion points.
-- [ ] Add a bounded internal admin event bus.
-- [ ] Define the first transport-safe login/logout event DTO.
-- [ ] Add SSE or WebSocket read-only event transport.
-- [ ] Invalidate/refetch player queries from login/logout events.
-- [ ] Replace the mock activity feed with live login/logout events.
+- [ ] Define the first local-development operator authentication mechanism.
+- [ ] Map existing OpenRSC groups to default dashboard capability bundles.
+- [ ] Define capability identifiers for read and mutation surfaces.
+- [ ] Define transport-safe authenticated-operator/session DTOs.
+- [ ] Define the mutation audit record contract before adding writes.
+- [ ] Add read-only auth/session introspection endpoint.
+- [ ] Keep all mutation endpoints disabled until authorization + audit checks exist.
 
 ### Phase 0 — Inventory and baseline
 
@@ -67,8 +66,8 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale.
 - [x] Add plugin inventory API.
 - [ ] Add admin utility catalog API.
 - [ ] Expose packet count/timing metrics.
-- [ ] Add internal admin event bus and login/logout events.
-- [ ] Add WebSocket or SSE live event stream.
+- [x] Add bounded internal admin event bus and login/logout events.
+- [x] Add SSE live event stream.
 
 ### Phase 2 — Visualize
 
@@ -78,7 +77,7 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale.
 - [x] Build initial live plugin/content explorer.
 - [ ] Build admin utility catalog UI.
 - [ ] Add packet metric visualizations.
-- [ ] Build live event feed.
+- [x] Build live login/logout event feed.
 - [ ] Build server/world selector.
 - [ ] Add read-only log/history views.
 
@@ -126,6 +125,21 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale.
 - [ ] Add new server capabilities only with explicit rationale and tests.
 
 ## Done
+
+### Login/logout event stream vertical slice — 2026-09-26
+
+- [x] Identify authoritative lifecycle hooks at `World.registerPlayer` and `World.removePlayer`.
+- [x] Add bounded non-blocking process-local `AdminEventBus`.
+- [x] Add transport-safe Admin event envelope with event IDs and timestamps.
+- [x] Emit `player.logged_in` and `player.logged_out` from authoritative world membership changes.
+- [x] Add `GET /admin/api/events` SSE transport with heartbeats and recent-event replay.
+- [x] Move Admin HTTP transport from one worker to an isolated fixed pool so SSE cannot block normal queries.
+- [x] Add frontend `EventSource` hook with event de-duplication.
+- [x] Invalidate/refetch player/status queries on login/logout events.
+- [x] Replace the mock activity feed with the live event stream.
+- [x] Smoke-test an event over SSE while concurrent status queries remain responsive.
+- [x] Browser-verify the live event connection against the running default world.
+- [ ] Perform a real client login/logout and verify lifecycle events end-to-end once client/Ant tooling is available.
 
 ### Online player summaries vertical slice — 2026-09-26
 
@@ -183,7 +197,8 @@ See `admin-2026/docs/next-slices.md` for the implementation rationale.
 - **2026-09-26:** Verified the bundled default world boots locally with SQLite and populated plugin/world data.
 - **2026-09-26:** Completed the plugin inventory slice with real handler/trigger/content metadata and a live searchable Plugins page.
 - **2026-09-26:** Completed online-player summaries and a live Players page; the default world correctly renders a zero-player empty state.
-- **2026-09-26:** Login/logout events are now the active slice.
+- **2026-09-26:** Completed bounded login/logout event plumbing and live SSE activity feed; real client lifecycle validation remains pending.
+- **2026-09-26:** Authentication/capabilities/audit contract is now the active prerequisite for the first mutation.
 
 ## Back Burner
 

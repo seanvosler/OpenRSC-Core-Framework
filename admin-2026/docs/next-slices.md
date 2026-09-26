@@ -6,7 +6,7 @@ This document captures the immediate implementation options after the live serve
 
 ## Status update
 
-The plugin inventory slice described below is implemented and live. Online player summaries are also implemented with a truthful zero-player default-world state. Login/logout events are now the active next slice.
+The plugin inventory and online-player summary slices are implemented and live. The login/logout event infrastructure is also implemented over SSE, with real client-driven lifecycle validation still pending. Authentication/capabilities/audit are now the active prerequisite before mutations.
 
 ## Recommendation
 

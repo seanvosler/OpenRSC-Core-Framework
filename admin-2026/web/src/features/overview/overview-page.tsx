@@ -23,6 +23,7 @@ import {
 import { Background, Controls, ReactFlow } from '@xyflow/react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 
+import { useAdminEvents } from '@/api/queries/admin-events'
 import { usePlayers } from '@/api/queries/players'
 import { usePluginInventory } from '@/api/queries/plugin-inventory'
 import { useServerStatus } from '@/api/queries/server-status'
@@ -61,15 +62,16 @@ const flowEdges = [
   { id: 'd', source: 'plugin', target: 'reward', animated: true },
 ]
 
-const events = [
-  ['14:33', 'Alice logged in', 'Player'],
-  ['14:32', 'Dragon Slayer trigger invoked', 'Plugin'],
-  ['14:31', 'Broadcast sent by Admin Rowan', 'Admin'],
-  ['14:30', 'Market sync completed', 'World'],
-  ['14:28', 'Spawn Debugger reloaded', 'Plugin'],
-]
+function describeAdminEvent(type: string, data: Record<string, unknown>) {
+  const username = typeof data.username === 'string' ? data.username : 'Player'
+
+  if (type === 'player.logged_in') return `${username} logged in`
+  if (type === 'player.logged_out') return `${username} logged out`
+  return type
+}
 
 export function OverviewPage() {
+  const { events: adminEvents, connectionState: eventConnectionState } = useAdminEvents()
   const statusQuery = useServerStatus()
   const playersQuery = usePlayers()
   const pluginQuery = usePluginInventory()
@@ -269,16 +271,32 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Coins className="size-4 text-primary" /> Recent Activity</CardTitle>
-            <CardDescription>Representative live event feed</CardDescription>
+            <CardDescription>
+              Live Admin event stream · {eventConnectionState}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-1">
-            {events.map(([time, text, kind]) => (
-              <div key={time + text} className="grid grid-cols-[52px_1fr_auto] gap-2 border-b border-border/50 py-2 text-sm last:border-0">
-                <span className="font-mono text-xs text-muted-foreground">{time}</span>
-                <span>{text}</span>
-                <Badge variant="outline" className="text-[10px]">{kind}</Badge>
+            {adminEvents.length ? (
+              adminEvents.slice(0, 8).map((event) => (
+                <div key={event.id} className="grid grid-cols-[68px_1fr_auto] gap-2 border-b border-border/50 py-2 text-sm last:border-0">
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {new Date(event.timestampEpochMillis).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </span>
+                  <span>{describeAdminEvent(event.type, event.data)}</span>
+                  <Badge variant="outline" className="text-[10px]">{event.serverName}</Badge>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                {eventConnectionState === 'connected'
+                  ? 'Waiting for player login/logout activity…'
+                  : 'Connecting to the live event stream…'}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </section>
