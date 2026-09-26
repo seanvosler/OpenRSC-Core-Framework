@@ -28,6 +28,10 @@ public class ClientLimitations {
 		setKnownLimitations(clientVersion);
 	}
 
+	public static ClientLimitations forClientVersion(int clientVersion) {
+		return new ClientLimitations(clientVersion);
+	}
+
 	public void setKnownLimitations(int clientVersion) {
 		maxFriends = 50;
 		maxIgnore = 50;

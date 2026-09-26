@@ -35,6 +35,7 @@ import com.openrsc.server.plugins.triggers.StartupTrigger;
 import com.openrsc.server.service.IPlayerService;
 import com.openrsc.server.service.PcapLoggerService;
 import com.openrsc.server.service.PlayerService;
+import com.openrsc.server.synthetic.SyntheticPlayerBootstrap;
 import com.openrsc.server.util.*;
 import com.openrsc.server.util.languages.I18NService;
 import com.openrsc.server.util.rsc.CaptchaGenerator;
@@ -573,6 +574,7 @@ public class Server implements Runnable {
 
 				lastTickTimestamp = serverStartedTime = System.nanoTime();
 				running.set(true);
+				SyntheticPlayerBootstrap.startIfEnabled(this);
 				AdminHttpServer.startIfEnabled();
 			} catch (final Throwable t) {
 				LOGGER.error("Exception in server start", t);
