@@ -523,6 +523,58 @@ npm run build
 
 The working frontend architecture is documented in `admin-2026/docs/gui-stack.md`, and current work state is tracked in `admin-2026/docs/tasklist.md`.
 
+## Recommended next slices
+
+Detailed implementation notes live in `admin-2026/docs/next-slices.md`.
+
+### 1. Plugin inventory
+
+This is the strongest immediate follow-up to live server status.
+
+Why it comes first:
+
+- the default world already loads hundreds of plugin handlers, so the UI has meaningful live data immediately
+- `PluginHandler` already owns loaded classes, trigger registrations, instantiated handlers, and reload state
+- `World` already owns quest, minigame, and shop collections populated by plugins
+- a read-only inventory can be added without authentication or mutation support
+- it replaces one of the largest remaining mock sections on the overview
+
+The first plugin contract should be intentionally descriptive, not operational. A likely `PluginSummary` includes:
+
+- stable class name
+- display/simple name
+- package/category hints
+- implemented trigger names
+- quest metadata when the instance implements `QuestInterface`
+- minigame metadata when it implements `MiniGameInterface`
+- shop/registrar/default-handler flags where useful
+- reload state at the handler/server level
+
+Do not expose raw plugin instances to the transport layer.
+
+### 2. Online player summaries
+
+The player path is technically simpler and should follow closely.
+
+A first `PlayerSummary` can safely use existing runtime getters for:
+
+- database/player ID
+- username
+- combat level
+- x/y coordinates
+- fatigue
+- group/staff level where appropriate
+
+Avoid IP address, recovery/account-security information, or private communications in the initial contract.
+
+The default local world starts with zero players, so this slice is best validated after plugin inventory unless a test client/login fixture is introduced.
+
+### 3. Login/logout events
+
+Once real player summaries exist, login/logout is the smallest meaningful live-event stream and gives the activity feed its first non-mock source.
+
+Keep mutations/authentication after these read-only slices.
+
 ## Non-goals
 
 - rewrite OpenRSC

@@ -2,7 +2,7 @@
 
 Guidance for agentic coding workers contributing to Admin 2026 in the OpenRSC Core Framework.
 
-Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, and `admin-2026/docs/gui-stack.md` before implementing substantive Admin 2026 work.
+Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, and `admin-2026/docs/gui-stack.md` before implementing substantive Admin 2026 work. Read `admin-2026/docs/next-slices.md` when working on the current plugin/player/event sequence.
 
 ## Mission
 
@@ -37,6 +37,22 @@ Current facts:
 - the current read-only backend contract is documented in `docs/backend-api.md`
 
 For frontend work, preserve the domain-oriented structure described in `docs/gui-stack.md`. Generated API code belongs in `src/api/generated/` and must never be edited manually.
+
+## Current recommended next slice
+
+Prefer **plugin inventory** before player details.
+
+The running default world immediately provides substantial plugin data even with zero connected players:
+
+- loaded plugin classes
+- trigger registrations
+- quests
+- minigames
+- shops
+
+Use a DTO/snapshot boundary. If `PluginHandler` needs a new accessor, return immutable/snapshot metadata rather than exposing its mutable maps, instances, or loader directly.
+
+Follow plugin inventory with a small `PlayerSummary` API. The initial player contract should exclude IP addresses and other sensitive account/security data.
 
 ## Progress tracking
 
@@ -407,11 +423,11 @@ Before adding a dependency:
 
 Do not perform broad dependency modernization as part of an Admin 2026 feature unless required.
 
-## Suggested first vertical slice
+## Vertical-slice progression
 
-### Step 1 — status DTO
+### Step 1 — status DTO — complete
 
-Expose existing state:
+The live status slice is implemented. It currently exposes:
 
 - server name
 - uptime
@@ -419,23 +435,27 @@ Expose existing state:
 - NPC count
 - running/shutdown state
 - tick duration
-- lateness
+- tick-budget overrun
 - stage timings
-- JVM memory
+- current tick and configured tick interval
 
-### Step 2 — online players
+### Step 2 — plugin inventory — active next slice
+
+Expose loaded plugin classes, trigger relationships, quest/minigame metadata, and other safe read-only plugin descriptors without exposing mutable plugin instances.
+
+### Step 3 — online players
 
 Expose small `PlayerSummary` DTOs.
 
-### Step 3 — player detail
+### Step 4 — player detail
 
 Expose a deliberately selected snapshot.
 
-### Step 4 — events
+### Step 5 — events
 
 Emit login/logout events first.
 
-### Step 5 — one command
+### Step 6 — one command
 
 Prefer player message as the initial mutation.
 
@@ -450,7 +470,7 @@ It exercises:
 
 without changing durable player state.
 
-### Step 6 — dashboard
+### Step 7 — dashboard
 
 Build only enough UI to exercise the vertical slice.
 

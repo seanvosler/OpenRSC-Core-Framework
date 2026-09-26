@@ -12,12 +12,25 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ## Doing
 
+### Next vertical slice — plugin inventory
+
+See `admin-2026/docs/next-slices.md` for the implementation rationale and proposed contracts.
+
+- [ ] Define a safe read-only plugin inventory snapshot from existing `PluginHandler` state.
+- [ ] Expose loaded plugin classes and trigger relationships without leaking live plugin instances.
+- [ ] Include existing quest/minigame metadata where available.
+- [ ] Add `GET /admin/api/plugins` and typed frontend query.
+- [ ] Replace overview mock plugin cards with real OpenRSC plugin data.
+- [ ] Build the first real Plugins route using the shared table pattern.
+- [ ] Keep reload/invocation timing/errors out of this slice unless naturally supported by existing state.
+
 ### Phase 0 — Inventory and baseline
 
 - [ ] Record normal startup steps, database requirements, and required config.
-- [ ] Inventory server lifecycle/status data, tick metrics, and packet metrics.
+- [x] Inventory server lifecycle/status data and tick-stage metrics.
+- [ ] Inventory packet count/timing metrics in detail.
 - [ ] Inventory admin/moderator commands by category.
-- [ ] Inventory plugin system state that can already be exposed.
+- [x] Inventory initial plugin system state that can already be exposed.
 - [ ] Inventory logging/history tables and queries.
 - [ ] Inventory snapshots and existing debug utilities.
 - [ ] Define initial DTO/query/command/event conventions.
@@ -47,7 +60,7 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 ### Phase 1 — Expose
 
 - [ ] Add `PlayerSummary` and `PlayerDetails` DTOs.
-- [ ] Add `PluginSummary` and `PluginDetails` DTOs.
+- [ ] Add `PluginSummary` and `PluginDetails` DTOs. (active next slice)
 - [ ] Add `AdminUtility` descriptor model.
 - [ ] Add online-player and player-detail APIs.
 - [ ] Add plugin inventory API.
@@ -136,6 +149,12 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - [x] Select OpenRSC Core Framework as the primary platform.
 - [x] Migrate Admin 2026 docs to this fork.
 - [x] Refocus Admin 2026 as a GUI control plane for existing OpenRSC capabilities.
+
+### Progress log
+
+- **2026-09-26:** Landed the first live end-to-end slice: OpenRSC runtime → read-only Java Admin API → Vite proxy → TanStack Query → live dashboard status/tick data.
+- **2026-09-26:** Verified the bundled default world boots locally with SQLite and populated plugin/world data.
+- **2026-09-26:** Chose plugin inventory as the next read-only slice because it provides rich live data immediately even with zero connected players; player summaries follow next.
 
 ## Back Burner
 
