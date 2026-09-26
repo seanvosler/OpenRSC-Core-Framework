@@ -25,3 +25,11 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - 2026-09-26: POPULATION MILESTONE REACHED — 15 unique synthetic users registered simultaneously as `Synthbot01` through `Synthbot15`, PIDs 0–14.
 - Spawned in a 5×3 grid near respawn; Admin status reported `world.players: 15` at tick 19 with no post-start synthetic runtime errors.
 - Bootstrap count is configurable with `-Dopenrsc.synthetic.count=N`, defaults to 15, and is currently capped at 100 for this experimental path.
+
+- 2026-09-26: Added reusable behavior runtime: `SyntheticActor`, `SyntheticBehavior`, `SyntheticPopulationService`, IDLE/WANDER behaviors, and a bounded 2-tick decision loop.
+- Added configurable spawn anchor via `openrsc.synthetic.spawnX/spawnY` and behavior selection via `openrsc.synthetic.behavior`.
+- Added generic `SyntheticActions` object discovery/interaction bridge; object actions dispatch through normal `OpLocTrigger` handling.
+- Added initial `MINER` behavior and test fixture provisioning of a bronze pickaxe.
+- Discovered custom client version 10009 requires login-supplied capability metadata; headless synths now default to explicit protocol capabilities for client 235 (override with `openrsc.synthetic.clientVersion`).
+- REAL MINING PROOF: Synthbot01 at east Varrock mine targeted copper rock 100, invoked authentic `Mining.onOpLoc`, walked as targets changed, reached copper ore 2 and Mining XP 140. No ore/XP mutation exists in synthetic behavior code.
+- Hardened dummy-player output handling to discard queued client packets each tick so channel-less gameplay activity does not accumulate outbound packets.

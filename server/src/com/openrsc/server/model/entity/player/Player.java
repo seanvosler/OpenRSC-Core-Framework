@@ -2466,6 +2466,9 @@ public final class Player extends Mob {
 
 	public void sendUpdates() {
 		if (getAttribute("dummyplayer", false)) {
+			synchronized (outgoingPackets) {
+				outgoingPackets.clear();
+			}
 			return;
 		}
 		getWorld().getServer().incrementLastUpdateClientsDuration(
