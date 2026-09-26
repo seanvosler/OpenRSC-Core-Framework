@@ -42,3 +42,7 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - 2026-09-26: Synced `feature/synthetic-players` with current `origin/develop` (through `790eca7`) with no source conflicts.
 - Integration smoke test: latest Admin `GET /admin/api/players` reported 3 live synthetic users with real usernames, PIDs/indexes, coordinates, combat level, fatigue, group, quest points, and synthetic negative database IDs; `/admin/api/status` simultaneously reported `world.players: 3`.
 - This proves the existing Admin live-player slice already observes synthetic actors without a synthetic-specific API.
+
+- 2026-09-26: Scaffolded native Admin route `/developer/synthetic-players`. It already reads the normal live player feed and shows synthetic actors via the current negative database-ID convention.
+- Added read-only configuration UI for count, behavior/scenario, and spawn X/Y. Spawn and Stop All controls are intentionally disabled pending authenticated/audited mutation APIs and clean lifecycle teardown.
+- Documented the future command/capability boundary in `admin-integration.md`. Frontend production build succeeds; Vitest reports 4 files / 7 tests passing.

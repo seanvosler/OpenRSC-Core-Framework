@@ -8,6 +8,7 @@ import {
   Gauge,
   Settings,
   ShieldCheck,
+  Bot,
   Users,
   Wrench,
 } from 'lucide-react'
@@ -24,6 +25,7 @@ const navItems = [
   { to: '/utilities', label: 'Utilities', icon: Wrench },
   { to: '/logs', label: 'Logs', icon: FileClock },
   { to: '/developer', label: 'Developer', icon: Bug },
+  { to: '/developer/synthetic-players', label: 'Synthetic', icon: Bot },
   { to: '/settings', label: 'Settings', icon: Settings },
 ] as const
 

@@ -1,0 +1,156 @@
+# Admin 2026 Integration — Synthetic Population
+
+## Product placement
+
+Synthetic population controls belong in a dedicated **Developer utility** surface, not normal player moderation.
+
+Current route:
+
+```text
+/developer/synthetic-players
+```
+
+The page should feel native to Admin 2026 while remaining explicitly development-only and experimental.
+
+## Page responsibilities
+
+The page owns three concerns:
+
+1. **Configuration**
+   - actor count
+   - profile/scenario selection
+   - spawn anchor X/Y or named safe location
+   - deterministic seed
+   - future variant policy overrides
+
+2. **Lifecycle**
+   - start/spawn a synthetic population
+   - stop one synthetic actor
+   - stop a scenario
+   - emergency stop all synthetic actors
+
+3. **Observability**
+   - live actor count
+   - identity / PID / synthetic database ID
+   - position
+   - profile
+   - behavior
+   - behavior state
+   - current target
+   - last decision/action
+   - errors/stuck state
+
+The generic Admin player API already observes synthetic actors because they are real world `Player` objects. Synthetic-specific APIs should add only the metadata and commands the generic player model does not know about.
+
+## Current frontend scaffold
+
+The route is intentionally read-only today.
+
+It:
+- consumes the existing live player feed;
+- identifies current synthetic fixtures by the experimental negative database-ID convention;
+- displays live synthetic actors when present;
+- provides editable spawn/count/behavior fields for layout and contract design;
+- keeps Spawn and Stop All buttons disabled.
+
+Do not enable mutations until Admin authentication/capabilities/audit and clean synthetic teardown are complete.
+
+## Proposed capabilities
+
+Keep capabilities explicit and separate from normal player moderation:
+
+```text
+synthetic.population.read
+synthetic.population.resolve
+synthetic.population.start
+synthetic.population.stop
+```
+
+Potential later split:
+
+```text
+synthetic.actor.stop
+synthetic.scenario.start
+synthetic.scenario.stop
+synthetic.population.stop_all
+```
+
+## Proposed backend command boundary
+
+Avoid browser-provided JVM properties and arbitrary Java mutation.
+
+Conceptual commands:
+
+```text
+StartSyntheticPopulationCommand
+  serverId
+  count
+  profileId | scenarioId
+  spawnAnchor?
+  seed?
+  lifetime?
+
+StopSyntheticPopulationCommand
+  serverId
+  scenarioInstanceId?
+
+StopSyntheticActorCommand
+  serverId
+  actorId
+```
+
+All inputs must be validated against the synthetic profile catalog, server/world selection, population limits, and capability policy.
+
+## Proposed read model
+
+A synthetic-specific read DTO can extend observability without changing `PlayerSummary`:
+
+```text
+SyntheticActorSummary
+  actorId
+  playerIndex
+  databaseId
+  username
+  scenarioId
+  profileId
+  behavior
+  state
+  target
+  x
+  y
+  seed
+  startedAt
+  lastDecisionAt
+  lastActionAt
+  error
+```
+
+Scenario-level status should expose requested/running/stopped/error counts and resolved configuration.
+
+## Lifecycle gate before enabling controls
+
+Spawn/stop controls remain disabled until:
+
+- actor teardown safely removes world/region/player indexes;
+- behavior events are cancelled;
+- outbound queues are cleared;
+- restart does not leak actors;
+- stop-all is proven;
+- Admin authentication and capabilities are live;
+- mutations are audited;
+- population ceilings and dev-only gating exist.
+
+## Integration principle
+
+Synthetic Population is a first-class Admin page, but the OpenRSC server remains authoritative.
+
+```text
+Admin page
+  -> explicit validated command
+  -> SyntheticPopulationService
+  -> normal OpenRSC world/game systems
+  -> explicit read DTO / normal player summaries
+  -> Admin page
+```
+
+No generic shell, SQL, Java reflection, raw `::command`, or arbitrary model mutation belongs in this path.

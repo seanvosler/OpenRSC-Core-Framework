@@ -108,7 +108,8 @@ Do not guess unresolved coordinates, item IDs, quest IDs, NPC IDs, or resource I
 
 ## 8. Admin 2026 observability
 
-- [ ] Synthetic actors appear in normal player counts.
+- [x] Synthetic actors appear in normal player counts.
+- [x] Scaffold dedicated `/developer/synthetic-players` Admin page using the existing live player feed.
 - [ ] Add synthetic-player list endpoint.
 - [ ] Expose actor identity/profile/scenario.
 - [ ] Expose behavior name.

@@ -4,6 +4,7 @@ import { AppShell } from '@/app/shell/app-shell'
 import { OverviewPage } from '@/features/overview/overview-page'
 import { PlayersPage } from '@/features/players/players-page'
 import { PluginsPage } from '@/features/plugins/plugins-page'
+import { SyntheticPlayersPage } from '@/features/synthetic/synthetic-players-page'
 import { PlaceholderPage } from '@/features/shared/placeholder-page'
 
 const rootRoute = createRootRoute({ component: AppShell })
@@ -26,6 +27,12 @@ const pluginsRoute = createRoute({
   component: PluginsPage,
 })
 
+const syntheticPlayersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/developer/synthetic-players',
+  component: SyntheticPlayersPage,
+})
+
 const makePlaceholder = (path: string, title: string, description: string) =>
   createRoute({
     getParentRoute: () => rootRoute,
@@ -37,6 +44,7 @@ const routeTree = rootRoute.addChildren([
   overviewRoute,
   playersRoute,
   pluginsRoute,
+  syntheticPlayersRoute,
   makePlaceholder('/world', 'World', 'Entities, shops, spawns, snapshots, maps, and world diagnostics.'),
   makePlaceholder('/utilities', 'Utilities', 'Discoverable wrappers around safe OpenRSC administrative actions.'),
   makePlaceholder('/logs', 'Logs', 'Staff, login, trade, moderation, and operational history.'),
