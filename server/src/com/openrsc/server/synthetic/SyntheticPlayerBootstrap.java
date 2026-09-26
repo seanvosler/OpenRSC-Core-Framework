@@ -1,6 +1,7 @@
 package com.openrsc.server.synthetic;
 
 import com.openrsc.server.Server;
+import com.openrsc.server.event.DelayedEvent;
 import com.openrsc.server.model.PlayerAppearance;
 import com.openrsc.server.model.Point;
 import com.openrsc.server.model.entity.player.Player;
@@ -49,6 +50,24 @@ public final class SyntheticPlayerBootstrap {
         LOGGER.info(
             "Synthetic player online: {} (pid={}, x={}, y={})",
             player.getUsername(), player.getIndex(), player.getX(), player.getY()
+        );
+
+        final int targetX = player.getX() + 3;
+        final int targetY = player.getY();
+        player.walk(targetX, targetY);
+        LOGGER.info("Synthetic player walking: {} -> ({},{})", player.getUsername(), targetX, targetY);
+
+        server.getGameEventHandler().add(
+            new DelayedEvent(server.getWorld(), player, server.getConfig().GAME_TICK * 5L, "Synthetic movement check") {
+                @Override
+                public void run() {
+                    LOGGER.info(
+                        "Synthetic movement result: {} (x={}, y={}, finished={})",
+                        player.getUsername(), player.getX(), player.getY(), player.finishedPath()
+                    );
+                    stop();
+                }
+            }
         );
     }
 }

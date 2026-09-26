@@ -14,3 +14,7 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - 2026-09-26: GOAL REACHED — live Admin status from SyntheticDev reports `world.players: 1`; actor remains server-side, logged in, channel-less, and tick-processed.
 - Verification: synthetic world TCP 43694, WS 43695, Admin 8797. Actor log: `Synthetic player online: Synthetic On (pid=0, x=120, y=648)`.
 - Note: the ad-hoc core-only javac test does not build gameplay plugins, so startup reports 0 plugin handlers / StartupTrigger warning. This is independent of the synthetic-player tick path and should be resolved by the normal full build at integration time.
+
+- 2026-09-26: NEXT MILESTONE REACHED — Synthetic One now uses the normal `Player.walk()` / `WalkingQueue` path and moved from (120,648) to (123,648).
+- Movement proof: queued target (123,648), then delayed runtime check reported `x=123, y=648, finished=true`; Admin status still reported `players: 1`.
+- This validates that a channel-less synthetic player can participate in ordinary server-side movement across game ticks.
