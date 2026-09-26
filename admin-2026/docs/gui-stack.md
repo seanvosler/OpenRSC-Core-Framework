@@ -567,9 +567,44 @@ Rules:
 7. Add tests for new admin mutation workflows.
 8. Keep visual nostalgia separate from business logic.
 
+## Implementation status
+
+The frontend scaffold described here now exists in `admin-2026/web/`.
+
+Completed:
+
+- Vite + React + TypeScript scaffold
+- Tailwind CSS 4
+- shadcn/ui initialization and core primitives
+- TanStack Router
+- TanStack Query provider
+- RSC Classic semantic theme tokens
+- application shell/sidebar and placeholder domain routes
+- representative mock overview using shadcn tables/cards, Recharts, and React Flow
+- Vitest + React Testing Library smoke test
+- successful production build and browser render
+
+Installed but not yet abstracted into shared project patterns:
+
+- TanStack Table
+- React Hook Form + Zod
+- Playwright
+
+Still to implement:
+
+- reusable `DataTable`
+- shared chart/diagram primitives
+- reusable admin action/form pattern
+- OpenAPI generation workflow
+- Playwright browser-test baseline
+- route-level lazy loading/code splitting
+- optional Modern Dark theme
+
+The current theme tokens live in `src/index.css` during the scaffold phase. They may be split into `src/theme/` once the theme system grows; agents should not create that split merely for cosmetic organization.
+
 ## Initial scaffold milestone
 
-The first GUI scaffold should include:
+The initial GUI scaffold target was:
 
 - Vite + React + TypeScript
 - Tailwind CSS 4
@@ -586,7 +621,7 @@ The first GUI scaffold should include:
 - Vitest
 - Playwright
 
-Do not build broad placeholder functionality beyond what is needed to establish these patterns.
+Most of this scaffold now exists. Use `docs/tasklist.md` as the authoritative source for which remaining scaffold items are incomplete; do not infer completion from this design document alone.
 
 ## Decision summary
 
