@@ -47,7 +47,7 @@ The OpenRSC server remains authoritative.
 
 Synthetic actors should use existing world, movement, event, NPC, object, inventory, combat, and plugin behavior where feasible rather than reimplementing those systems.
 
-Profile/scenario configuration is documented in [`synthetic-profiles.md`](synthetic-profiles.md). Behavior runtime details and milestones are documented in [`behavior-plan.md`](behavior-plan.md).
+Profile/scenario configuration is documented in [`synthetic-profiles.md`](synthetic-profiles.md). Behavior runtime details and milestones are documented in [`behavior-plan.md`](behavior-plan.md). Pre-live readiness gates are tracked in [`pre-live-checklist.md`](pre-live-checklist.md).
 
 ## First behavior profiles
 

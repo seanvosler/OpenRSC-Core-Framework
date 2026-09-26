@@ -36,3 +36,5 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 
 - 2026-09-26: Documented the next configuration layer in `synthetic-profiles.md`: declarative starting skills/XP, equipment, inventory, spawn, behavior assignment, deterministic seeds, scenario composition, and 20 generalized player archetypes.
 - Profiles are explicitly fixture/setup state; post-start gameplay outcomes remain owned by normal OpenRSC systems.
+
+- 2026-09-26: Added `pre-live-checklist.md` to separate prototype success from routine dev-server readiness. It tracks catalog reconciliation (including all `PLACEHOLDER_*` values), profile resolution, lifecycle safety, behavior authenticity, Admin observability, real-client rendering, scale/performance, operational controls, tests, and documentation.
