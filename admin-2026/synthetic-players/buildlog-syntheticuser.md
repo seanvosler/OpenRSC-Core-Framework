@@ -18,3 +18,10 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - 2026-09-26: NEXT MILESTONE REACHED — Synthetic One now uses the normal `Player.walk()` / `WalkingQueue` path and moved from (120,648) to (123,648).
 - Movement proof: queued target (123,648), then delayed runtime check reported `x=123, y=648, finished=true`; Admin status still reported `players: 1`.
 - This validates that a channel-less synthetic player can participate in ordinary server-side movement across game ticks.
+
+- 2026-09-26: Pivoted from one actor to population scaling. New target: 15 simultaneous unique synthetic players.
+- Refactored bootstrap to `openrsc.synthetic.count` (default 15, capped at 100), unique names `SynthBot01..`, unique synthetic DB IDs, varied appearances, and a compact 5-column spawn grid.
+
+- 2026-09-26: POPULATION MILESTONE REACHED — 15 unique synthetic users registered simultaneously as `Synthbot01` through `Synthbot15`, PIDs 0–14.
+- Spawned in a 5×3 grid near respawn; Admin status reported `world.players: 15` at tick 19 with no post-start synthetic runtime errors.
+- Bootstrap count is configurable with `-Dopenrsc.synthetic.count=N`, defaults to 15, and is currently capped at 100 for this experimental path.
