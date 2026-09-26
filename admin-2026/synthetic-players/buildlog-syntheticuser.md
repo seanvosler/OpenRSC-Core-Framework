@@ -38,3 +38,7 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - Profiles are explicitly fixture/setup state; post-start gameplay outcomes remain owned by normal OpenRSC systems.
 
 - 2026-09-26: Added `pre-live-checklist.md` to separate prototype success from routine dev-server readiness. It tracks catalog reconciliation (including all `PLACEHOLDER_*` values), profile resolution, lifecycle safety, behavior authenticity, Admin observability, real-client rendering, scale/performance, operational controls, tests, and documentation.
+
+- 2026-09-26: Synced `feature/synthetic-players` with current `origin/develop` (through `790eca7`) with no source conflicts.
+- Integration smoke test: latest Admin `GET /admin/api/players` reported 3 live synthetic users with real usernames, PIDs/indexes, coordinates, combat level, fatigue, group, quest points, and synthetic negative database IDs; `/admin/api/status` simultaneously reported `world.players: 3`.
+- This proves the existing Admin live-player slice already observes synthetic actors without a synthetic-specific API.
