@@ -278,6 +278,22 @@ During Phase 0:
 
 ---
 
+## Implementation note
+
+This file is a landscape/research record, not the live implementation plan.
+
+Since this research was completed, Admin 2026 has:
+
+- selected OpenRSC Core Framework as the server platform
+- adopted a Vite + React + TypeScript GUI architecture
+- created a working mock-backed dashboard scaffold under `admin-2026/web/`
+
+For current architecture and execution state, use:
+
+- `admin-2026/readme.md`
+- `admin-2026/docs/gui-stack.md`
+- `admin-2026/docs/tasklist.md`
+
 ## Current architecture recommendation
 
 ```text
