@@ -471,6 +471,47 @@ A useful first release should include:
 
 This is more valuable than a broad empty dashboard shell.
 
+## Current implementation status
+
+The first frontend scaffold now exists under `admin-2026/web/`.
+
+Implemented and verified:
+
+- React + TypeScript + Vite SPA
+- Tailwind CSS 4 + shadcn/ui primitives
+- TanStack Router and TanStack Query providers
+- TanStack Table, Recharts, React Flow, React Hook Form, and Zod dependencies
+- RSC Classic theme tokens and responsive application shell
+- routed areas for Overview, Players, World, Plugins, Utilities, Logs, Developer, and Settings
+- mock-backed overview with server metrics, player table, plugin/content cards, tick chart, plugin-flow diagram, admin utilities, and activity feed
+- reserved `src/api/generated/` location for future OpenAPI-generated client/types
+- Vitest + React Testing Library smoke-test baseline
+- successful production build
+- successful local browser render of the dashboard
+
+The overview is intentionally **mock-backed** today. No Java Admin API has been added yet, and the GUI must not imply that sample values or actions are connected to a live OpenRSC server.
+
+The next implementation milestone is to inventory the existing OpenRSC runtime surfaces and expose the first real read-only Java contract, beginning with `ServerStatus` / `WorldStatus`.
+
+### Local frontend development
+
+From the repository root:
+
+```bash
+cd admin-2026/web
+npm install
+npm run dev
+```
+
+Verification:
+
+```bash
+npm run test
+npm run build
+```
+
+The working frontend architecture is documented in `admin-2026/docs/gui-stack.md`, and current work state is tracked in `admin-2026/docs/tasklist.md`.
+
 ## Non-goals
 
 - rewrite OpenRSC
