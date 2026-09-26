@@ -25,7 +25,8 @@ A working SPA scaffold exists at `admin-2026/web/`.
 Current facts:
 
 - server health/status is live through `GET /admin/api/status`
-- player rows, plugin cards, activity events, and admin actions are still mock/planned
+- player rows, activity events, and admin actions are still mock/planned
+- plugin inventory and the Plugins route are live
 - Vite/React/TypeScript is the frontend runtime
 - Tailwind CSS 4 + shadcn/ui provide the source-owned UI foundation
 - TanStack Router/Query are wired
@@ -40,7 +41,7 @@ For frontend work, preserve the domain-oriented structure described in `docs/gui
 
 ## Current recommended next slice
 
-Prefer **plugin inventory** before player details.
+Prefer **online player summaries** next. The plugin inventory slice is complete.
 
 The running default world immediately provides substantial plugin data even with zero connected players:
 

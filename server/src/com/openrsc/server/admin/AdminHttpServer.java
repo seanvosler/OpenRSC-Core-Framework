@@ -56,6 +56,7 @@ public final class AdminHttpServer {
 
 			httpServer = HttpServer.create(new InetSocketAddress(bindAddress, port), 0);
 			httpServer.createContext("/admin/api/status", AdminHttpServer::handleStatus);
+			httpServer.createContext("/admin/api/plugins", AdminHttpServer::handlePlugins);
 
 			executor = Executors.newSingleThreadExecutor(runnable -> {
 				final Thread thread = new Thread(runnable, "Admin2026Http");
@@ -106,6 +107,28 @@ public final class AdminHttpServer {
 		final JSONObject response = new JSONObject()
 			.put("generatedAtEpochMillis", System.currentTimeMillis())
 			.put("servers", serverStatuses);
+
+		sendJson(exchange, 200, response);
+	}
+
+	private static void handlePlugins(final HttpExchange exchange) throws IOException {
+		if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "GET");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		final List<Server> servers = new ArrayList<>(Server.serversList.values());
+		servers.sort(Comparator.comparing(Server::getName));
+
+		final JSONArray inventories = new JSONArray();
+		for (final Server server : servers) {
+			inventories.put(PluginInventoryStatus.from(server).toJson());
+		}
+
+		final JSONObject response = new JSONObject()
+			.put("generatedAtEpochMillis", System.currentTimeMillis())
+			.put("servers", inventories);
 
 		sendJson(exchange, 200, response);
 	}

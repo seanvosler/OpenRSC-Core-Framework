@@ -15,6 +15,7 @@ Implemented:
 - opt-in enablement through JVM properties
 - typed `ServerStatus`, `WorldStatus`, and `TickMetrics` snapshots
 - `GET /admin/api/status`
+- `GET /admin/api/plugins`
 - support for multiple in-process OpenRSC servers through `Server.serversList`
 - frontend Vite proxy to the admin listener
 
@@ -87,6 +88,42 @@ Response shape:
   ]
 }
 ```
+## Plugin inventory endpoint
+
+```http
+GET /admin/api/plugins
+```
+
+This endpoint returns one read-only plugin inventory per active OpenRSC server.
+
+Current metadata includes:
+
+- instantiated plugin handler count
+- distinct trigger type count
+- quest count
+- minigame count
+- shop count
+- plugin class name / simple name / package
+- implemented trigger interface names
+- inferred kinds such as quest, minigame, shop, registrar, default-handler, and trigger-handler
+- quest metadata when the plugin implements `QuestInterface`
+- minigame metadata when the plugin implements `MiniGameInterface`
+- current plugin-handler reload state
+
+The implementation adds copied/unmodifiable snapshot accessors to `PluginHandler`. It does **not** expose mutable registration maps, the plugin loader, or live plugin instances.
+
+Observed against the default world:
+
+```text
+instantiatedPlugins: 455
+triggerTypes: 31
+quests: 50
+minigames: 9
+shops: 92
+```
+
+Dragon Slayer was verified as a quest/trigger handler with its actual quest metadata and trigger interfaces.
+
 ## Metric semantics
 
 All OpenRSC timing fields are recorded internally in nanoseconds and are converted to milliseconds in the admin DTO.

@@ -20,7 +20,6 @@ Live today:
 Still mock/planned:
 
 - player table rows/details
-- plugin cards
 - activity feed
 - administrative actions
 
@@ -31,6 +30,8 @@ Current frontend capabilities include:
 - TanStack Router + TanStack Query
 - Recharts metrics visualization
 - React Flow plugin-flow visualization
+- live plugin inventory and searchable/sortable Plugins route
+- reusable TanStack Table v9 DataTable
 - RSC Classic design tokens
 - routed Overview / Players / World / Plugins / Utilities / Logs / Developer / Settings areas
 - Vitest + React Testing Library smoke-test baseline

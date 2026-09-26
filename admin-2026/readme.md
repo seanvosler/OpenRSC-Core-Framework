@@ -495,14 +495,14 @@ Implemented and verified:
 Still mock/planned:
 
 - player table rows/details
-- plugin cards/diagnostics
+- plugin diagnostics beyond inventory (timing/errors/reload controls)
 - activity/event feed
 - administrative mutations
 - authentication/authorization
 
 The backend status contract and local listener properties are documented in `admin-2026/docs/backend-api.md`.
 
-The next implementation milestone is to expose real player and plugin inventories, then add login/logout events without widening the mutation surface yet.
+The plugin inventory is now live. The next implementation milestone is real online-player summaries and a Players route, followed by login/logout events without widening the mutation surface yet.
 
 ### Local frontend development
 

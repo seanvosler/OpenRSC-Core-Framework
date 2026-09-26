@@ -4,6 +4,10 @@ _Last updated: 2026-09-26_
 
 This document captures the immediate implementation options after the live server-status milestone.
 
+## Status update
+
+The plugin inventory slice described below is now implemented and live. Online player summaries are the active next slice.
+
 ## Recommendation
 
 Implement **plugin inventory first**, followed by **online player summaries**, then **login/logout events**.

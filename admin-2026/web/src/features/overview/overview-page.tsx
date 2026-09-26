@@ -23,6 +23,7 @@ import {
 import { Background, Controls, ReactFlow } from '@xyflow/react'
 import { Line, LineChart, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts'
 
+import { usePluginInventory } from '@/api/queries/plugin-inventory'
 import { useServerStatus } from '@/api/queries/server-status'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -53,17 +54,6 @@ const players = [
   { name: 'SeerScout', combat: 61, location: "Seers' Village", hp: 52, activity: 'Exploring' },
 ]
 
-const plugins = [
-  { name: 'Dragon Slayer', meta: 'Quest · Content', status: 'Active' },
-  { name: 'Goblin Diplomacy', meta: 'Quest · NPCs', status: 'Active' },
-  { name: 'Clan System', meta: 'Social · Persistent', status: 'Active' },
-  { name: 'Market', meta: 'Economy · Trading', status: 'Active' },
-  { name: 'Holiday Events', meta: 'Seasonal · World', status: 'Warning' },
-  { name: 'Path Trace Overlay', meta: 'Developer · Tools', status: 'Reloadable' },
-  { name: 'Quest Flow Inspector', meta: 'Developer · Tools', status: 'Active' },
-  { name: 'Spawn Debugger', meta: 'Developer · World', status: 'Error' },
-]
-
 const flowNodes = [
   { id: 'player', position: { x: 0, y: 70 }, data: { label: 'Player enters area' }, type: 'input' },
   { id: 'trigger', position: { x: 190, y: 70 }, data: { label: 'NPC Talk Trigger' } },
@@ -87,14 +77,11 @@ const events = [
   ['14:28', 'Spawn Debugger reloaded', 'Plugin'],
 ]
 
-function statusVariant(status: string) {
-  if (status === 'Error') return 'destructive' as const
-  return 'outline' as const
-}
-
 export function OverviewPage() {
   const statusQuery = useServerStatus()
+  const pluginQuery = usePluginInventory()
   const server = statusQuery.data?.servers[0]
+  const pluginInventory = pluginQuery.data?.servers[0]
   const [tickData, setTickData] = useState<Array<{ t: string; ms: number }>>([])
   const lastRecordedTick = useRef<number | null>(null)
 
@@ -119,6 +106,11 @@ export function OverviewPage() {
       : server
         ? 'Connected'
         : 'No servers'
+
+  const pluginCards =
+    pluginInventory?.plugins
+      .filter((plugin) => plugin.quest || plugin.minigame)
+      .slice(0, 8) ?? []
 
   const stats = [
     { label: 'Online Players', value: server ? String(server.world.players) : '—', icon: Users, tone: 'text-emerald-300' },
@@ -180,22 +172,38 @@ export function OverviewPage() {
         <Card className="panel-etched">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Boxes className="size-4 text-primary" /> Plugins & Content</CardTitle>
-            <CardDescription>Real and imagined plugin surfaces</CardDescription>
+            <CardDescription>
+              {pluginInventory
+                ? `${pluginInventory.instantiatedPlugins} live handlers · ${pluginInventory.quests} quests · ${pluginInventory.minigames} minigames`
+                : pluginQuery.isError
+                  ? 'Plugin inventory unavailable'
+                  : 'Loading live plugin inventory…'}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2 sm:grid-cols-2">
-            {plugins.map((plugin) => (
-              <div key={plugin.name} className="rounded-md border bg-background/35 p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="text-sm font-medium">{plugin.name}</div>
-                    <div className="text-xs text-muted-foreground">{plugin.meta}</div>
+            {pluginCards.length ? (
+              pluginCards.map((plugin) => (
+                <div key={plugin.className} className="rounded-md border bg-background/35 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">
+                        {plugin.quest?.name ?? plugin.minigame?.name ?? plugin.simpleName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {plugin.triggerNames.length} triggers · {plugin.kinds.join(', ')}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={plugin.quest?.members || plugin.minigame?.members ? 'border-amber-500/40 text-amber-200' : 'border-emerald-500/40 text-emerald-300'}>
+                      {plugin.quest ? 'Quest' : 'Minigame'}
+                    </Badge>
                   </div>
-                  <Badge variant={statusVariant(plugin.status)} className={plugin.status === 'Active' ? 'border-emerald-500/40 text-emerald-300' : plugin.status === 'Warning' ? 'border-amber-500/40 text-amber-200' : plugin.status === 'Reloadable' ? 'border-sky-500/40 text-sky-300' : ''}>
-                    {plugin.status}
-                  </Badge>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-full rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                {pluginQuery.isError ? 'Start the Admin API to load plugin data.' : 'Waiting for plugin inventory…'}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </section>
