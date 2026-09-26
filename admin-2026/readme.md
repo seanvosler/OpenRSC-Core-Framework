@@ -1,617 +1,491 @@
 # Admin 2026
 
-A modern administration, observability, moderation, and live-world tooling layer for OpenRSC.
+Admin 2026 is a GUI control plane for OpenRSC.
 
-This directory contains the project plan and working documentation for adding a browser-based operations console to the OpenRSC Core Framework.
+Its central purpose is to make OpenRSC's existing administrative tools, plugin system, runtime state, logs, diagnostics, and server data accessible through a modern browser-based interface.
 
-The game server remains authoritative. Admin 2026 observes server state, subscribes to operational events, and sends explicit validated administrative commands.
+The project should prefer **surfacing and organizing existing OpenRSC capabilities** over inventing parallel systems.
 
-## Project context
+## Central goal
 
-Admin 2026 was originally explored against the 2003Scape Node.js server. The project moved to OpenRSC because OpenRSC provides a substantially richer and actively maintained RSC server foundation.
+Admin 2026 should answer four questions for operators and developers:
 
-The architecture and goals remain useful, but implementation should now build on OpenRSC's existing systems rather than recreate them.
+1. **What is happening right now?**
+2. **What data and tools does the server already expose?**
+3. **What administrative actions can I safely perform?**
+4. **What plugins/content systems are loaded, active, slow, failing, or reloadable?**
 
-Important existing capabilities include:
-
-- Java server runtime
-- Netty networking
-- configurable TCP/WebSocket server support
-- multi-server configuration support in one process
-- mature `World` and `Player` models
-- plugin triggers and plugin reload infrastructure
-- quests, minigames, shops, clans, parties and market systems
-- MySQL and SQLite database implementations
-- extensive game/staff logging
-- mature admin/moderator commands
-- staff groups and ranks
-- packet timing/count instrumentation
-- tick-stage timing instrumentation
-- world snapshots
-- PCAP logging support
-- configurable worlds and feature flags
-
-Admin 2026 should expose and organize these capabilities safely rather than build parallel versions.
-
-## Architectural principle
-
-Do not expose mutable game objects or arbitrary command execution to the browser.
-
-Use a narrow administrative boundary:
+The working sequence is:
 
 ```text
-Browser dashboard
-      |
-      | HTTP queries / commands
-      | WebSocket/SSE live events
-      v
-OpenRSC Admin API
-      |
-      | DTOs, authorization, command handlers, events
-      v
-OpenRSC server runtime
-      |
-      +-- Server
-      +-- World
-      +-- Player / NPC / entities
-      +-- PluginHandler
-      +-- GameEventHandler
-      +-- GameDatabase / logging
-      +-- existing staff commands
+inventory
+   ↓
+expose
+   ↓
+visualize
+   ↓
+operate
 ```
 
-The OpenRSC server must continue to run normally when the dashboard is disabled or unavailable.
+That sequence should guide implementation priorities.
 
-## Key OpenRSC integration points
+## Product definition
 
-### `server/src/com/openrsc/server/Server.java`
+Admin 2026 is not just a moderation panel.
 
-Primary runtime integration point.
+It is intended to become the primary GUI for:
 
-It already owns or exposes:
+- server health and status
+- live world state
+- player inspection
+- moderation
+- administrative utilities
+- plugin/content inspection
+- plugin utilities
+- runtime diagnostics
+- logs and historical data
+- developer/debug tooling
+- multi-world operations where applicable
 
-- `World`
-- `PluginHandler`
-- `GameEventHandler`
-- database implementation
-- game logger
-- player service
-- packet filtering
-- Netty server channels
+OpenRSC remains authoritative.
+
+The browser never becomes a second game server and never gains arbitrary access to mutable Java objects.
+
+## Core product principle
+
+If OpenRSC already has a capability, Admin 2026 should expose it cleanly before creating a new one.
+
+Examples:
+
+```text
+existing Server tick metrics
+        ↓
+ServerStatus / TickMetrics DTO
+        ↓
+admin API
+        ↓
+dashboard charts/cards
+```
+
+```text
+existing staff command behavior
+        ↓
+explicit admin service method
+        ↓
+authorized API command
+        ↓
+GUI action + audit record
+```
+
+```text
+PluginHandler state
+        ↓
+PluginStatus DTOs
+        ↓
+plugin API
+        ↓
+plugin explorer / diagnostics UI
+```
+
+## Existing OpenRSC capabilities to surface
+
+### Server/runtime
+
 - server lifecycle
-- server start time
-- tick timing metrics
-- stage-level tick timings
-- incoming/outgoing opcode counts and timings
-- private-message counters
-- multi-server registry via `Server.serversList`
+- world instances
+- TCP/WebSocket listeners
+- uptime
+- tick duration
+- tick lateness
+- tick-stage timings
+- packet opcode counts and timings
+- JVM/runtime state
+- multiple configured servers via `Server.serversList`
 
-This should be the first place investigated for server-level status DTOs.
-
-### `server/src/com/openrsc/server/model/world/World.java`
-
-Authoritative live world model.
-
-It already owns or exposes:
+### World state
 
 - players
 - NPCs
+- game objects
 - shops
 - quests
 - minigames
-- region manager
-- party manager
-- clan manager
+- clans
+- parties
 - market
-- world loader
-- combat/world state
+- regions
 - snapshots
-- pathfinding debug state
+- pathfinding/debug state
 
-This is the natural source for live-world inspection.
+### Administrative tools
 
-### `server/src/com/openrsc/server/model/entity/player/Player.java`
+OpenRSC already contains a mature command ecosystem including operations such as:
 
-Rich live player state including:
+- message
+- teleport
+- kick
+- mute/unmute
+- ban/unban
+- save all
+- broadcast
+- graceful update/restart
+- shutdown
+- player stat/inventory/bank operations
+- spawn/remove NPCs/items/objects
+- event controls
+- world/debug utilities
 
-- identity/session information
-- stats and experience
-- inventory/equipment/bank
-- quest stages
-- settings
-- social state
-- trade
-- clan/party membership
-- combat/activity state
-- moderation/rank-related state
+Admin 2026 should provide safe GUI wrappers around useful operations rather than exposing arbitrary command strings.
 
-Never serialize `Player` directly. Map selected fields into stable admin DTOs.
+### Plugin system
 
-### `server/src/com/openrsc/server/plugins/handler/PluginHandler.java`
+OpenRSC already has:
 
-OpenRSC already has a mature plugin system.
-
-It includes:
-
-- trigger discovery
-- plugin instance registry
-- Guice injection
-- quest/minigame/shop registration
+- plugin discovery
+- trigger registration
+- plugin instances
+- quests
+- minigames
+- shops
 - plugin execution
 - plugin thread pool
-- plugin unload/load/reload behavior
+- load/unload/reload behavior
 
-Admin 2026 should instrument this existing system rather than invent plugin metadata/loading from scratch.
+The plugin system is a first-class Admin 2026 domain.
 
-### `server/src/com/openrsc/server/database/GameDatabase.java`
+### Data/logging
 
-The database abstraction already exposes extensive player, moderation, account, logging, spawn and world operations.
+OpenRSC already exposes or persists significant data around:
 
-Before creating new persistence tables or APIs, inspect existing logging/query structures.
+- players
+- accounts
+- moderation
+- logins
+- staff actions
+- trades
+- chat/logging
+- spawns
+- world definitions
+- server activity
 
-### `server/src/com/openrsc/server/model/entity/player/Group.java`
+Before introducing new storage, Admin 2026 should inventory and reuse what already exists.
 
-Existing staff groups include:
+## Dashboard information architecture
 
-- Owner
-- Admin
-- Super Moderator
-- Moderator
-- Developer
-- Event
-- Player Moderator
-- Tester
-- User
+### 1. Overview
 
-Admin 2026 can use these identities as inputs, but web authorization should still be capability-oriented internally.
+The landing page should answer: "Is the server healthy?"
 
-## Proposed Admin 2026 stack
+Potential widgets:
 
-### Server-side admin module
-
-Preferred initial direction:
-
-- Java, inside the OpenRSC server project
-- isolated under a package such as `com.openrsc.server.admin`
-- minimal HTTP API
-- WebSocket or SSE live event stream
-- explicit DTO mapping
-- explicit command handlers
-- capability authorization
-- reuse existing OpenRSC services and database logging where appropriate
-
-Avoid introducing a second backend runtime unless there is a clear reason.
-
-A useful package shape may be:
-
-```text
-server/src/com/openrsc/server/admin/
-├── AdminService.java
-├── AdminEventBus.java
-├── auth/
-├── commands/
-├── dto/
-├── routes/
-└── telemetry/
-```
-
-This is a direction, not a fixed requirement.
-
-### Dashboard
-
-Recommended:
-
-- React
-- TypeScript
-- Next.js or a lightweight Vite application
-- TanStack Query
-- Tailwind CSS
-- shadcn/ui or similarly lightweight component primitives
-
-Choose Next.js only if its server-side capabilities provide value. OpenRSC itself should remain the authoritative backend.
-
-### Historical/admin data
-
-OpenRSC already persists significant operational history.
-
-Before creating a new analytics database:
-
-1. inventory existing OpenRSC log tables and queries
-2. identify missing event classes
-3. extend existing logging where appropriate
-4. introduce separate analytics storage only when necessary
-
-Do not duplicate data simply because a dashboard wants it.
-
-## Core contracts
-
-Admin 2026 should distinguish four concepts.
-
-### Queries
-
-Read-only requests.
-
-Examples:
-
-- `server.status`
-- `world.status`
-- `players.list`
-- `players.get`
-- `entities.search`
-- `plugins.list`
-- `plugins.get`
-- `logs.search`
-
-### DTOs
-
-Stable serialized representations.
-
-Examples:
-
-- `ServerStatus`
-- `WorldStatus`
-- `PlayerSummary`
-- `PlayerDetails`
-- `EntitySummary`
-- `PluginStatus`
-- `TickMetrics`
-- `PacketMetrics`
-
-DTOs should be smaller and safer than their OpenRSC model objects.
-
-### Commands
-
-Mutations must be explicit.
-
-Examples:
-
-- `player.message`
-- `player.teleport`
-- `player.kick`
-- `player.mute`
-- `player.giveItem`
-- `world.broadcast`
-- `world.saveAll`
-- `server.restart`
-- `plugin.reload`
-
-Every command should:
-
-1. validate input
-2. authenticate the operator
-3. authorize the capability
-4. resolve targets safely
-5. call authoritative OpenRSC behavior
-6. record success/failure
-7. create an audit record
-8. emit an admin event where appropriate
-
-Do not expose a browser endpoint that executes arbitrary `::commands`.
-
-Existing OpenRSC commands are valuable implementation references, not the browser API.
-
-### Events
-
-Events describe facts that occurred.
-
-Examples:
-
-- `player.logged_in`
-- `player.logged_out`
-- `player.died`
-- `trade.completed`
-- `plugin.invoked`
-- `plugin.failed`
-- `server.tick_completed`
-- `admin.command_executed`
-
-Start with a small vocabulary.
-
-## Existing observability to leverage
-
-OpenRSC already tracks more server telemetry than the original Admin 2026 plan expected.
-
-`Server.java` contains fields for:
-
-- last tick duration
-- lateness
-- incoming packet processing duration
-- event processing duration
-- outgoing packet duration
-- world update duration
-- player processing duration
-- NPC processing duration
-- message queue duration
-- client update duration
-- cleanup duration
-- walk action duration
-- incoming opcode count/timing
-- outgoing opcode count/timing
-
-The first status/metrics API should expose these existing values before introducing new instrumentation.
-
-## Dashboard areas
-
-### Overview
-
-Show:
-
-- configured server/world name
+- active server/world
 - uptime
-- player count
-- NPC count
-- server lifecycle state
-- tick duration and lateness
+- online player count
+- NPC/entity counts
+- tick duration
+- tick lateness
 - tick-stage timings
+- packet throughput/timing
 - JVM memory
 - database health
-- TCP/WebSocket listener status
-- plugin status
+- listener/network state
+- plugin state
 - recent warnings/errors
+- recent admin actions
 
-### Players
+### 2. Players
 
-Searchable live-player table and player inspector.
+Searchable player list and inspector.
 
-Potential fields:
+Potential views:
 
-- username
-- database/player ID
-- staff group
-- combat level
+- live online players
+- profile/identity
 - coordinates
-- health
-- fatigue
-- session duration
-- current activity
-- quest state
-- inventory/equipment/bank
+- stats
+- inventory
+- equipment
+- bank
+- quests
+- fatigue/health
 - clan/party
+- current activity
 - moderation state
-- recent events
+- recent events/logins
+- account relationships where policy allows
 
-Role-gate sensitive information.
+### 3. Admin utilities
 
-### Moderation
+A discoverable GUI catalog of supported administrative actions.
 
-Build on OpenRSC's existing moderation system.
+Examples:
 
-Potential features:
-
-- player lookup
-- mute/unmute
+- message player
+- teleport player
 - kick
+- mute/unmute
 - ban/unban
-- staff alerts
-- account/IP relationship investigation
-- login history
-- staff action history
-- chat logs where policy permits
+- broadcast
+- save all
+- graceful restart/update
+- shutdown
+- world/event controls
+- spawn/debug utilities
 
-Private-message visibility remains an explicit privacy/product decision.
+Each utility should clearly show:
 
-### Plugins/content
+- required capability
+- inputs
+- target
+- confirmation where appropriate
+- result
+- audit record
 
-Expose the existing plugin system:
+### 4. Plugins & content
+
+A primary workspace for the OpenRSC plugin system.
+
+Display:
 
 - loaded plugin classes
-- trigger interfaces
-- quests/minigames/shops
+- trigger types
+- quests
+- minigames
+- shops
+- registrations
 - invocation counts
 - execution timing
-- errors
+- recent failures
 - reload state
+- dependency/content relationships where available
 
-OpenRSC already supports plugin load/unload behavior, so a future controlled plugin reload operation is more realistic here than it was in the 2003Scape plan.
+Planned utilities may include:
 
-### Developer tools
+- inspect plugin
+- inspect triggers
+- filter errors
+- reload supported plugin sets
+- compare plugin activity over time
+- trace a quest/content flow
+
+### 5. World tooling
+
+Potential views:
+
+- NPC inspector
+- object inspector
+- shop inspector
+- spawn browser
+- snapshot browser
+- region/tile information
+- live world map
+- pathfinding/debug overlays
+
+### 6. Logs & history
+
+Use existing OpenRSC persistence where possible.
+
+Potential areas:
+
+- staff actions
+- login history
+- moderation history
+- trade history
+- chat logs
+- generic logs
+- plugin failures
+- server errors
+- economy activity
+- historical operational metrics
+
+### 7. Developer tools
 
 Potential tools:
 
 - tick profiler
 - packet opcode metrics
-- snapshot browser
-- PCAP/log controls where safe
+- event/debug stream
 - plugin timing
-- pathfinding debug
-- entity inspector
-- event queue information
+- snapshot inspection
+- pathfinding diagnostics
+- PCAP controls/inspection where safe
+- runtime configuration viewer
 
-### World operations
+## Architecture
 
-Potential operations based on existing OpenRSC capabilities:
+Use a narrow boundary:
 
-- broadcast
-- save all
-- graceful update/restart
-- shutdown
-- spawn/remove entities
-- event controls
-- world reload operations
+```text
+Browser GUI
+    |
+    | HTTP queries / explicit commands
+    | WebSocket or SSE live events
+    v
+Admin 2026 API / adapter layer
+    |
+    | DTOs
+    | authorization
+    | audit
+    | safe adapters
+    v
+Existing OpenRSC systems
+    |
+    +-- Server
+    +-- World
+    +-- Player / NPC / entities
+    +-- PluginHandler
+    +-- GameEventHandler
+    +-- GameDatabase / logging
+    +-- existing admin command/domain behavior
+```
 
-These should be explicit, authorized, audited commands.
+Admin 2026 should primarily be an **adapter and presentation layer**.
 
-## Security model
+## Key integration points
 
-Treat the admin surface as privileged infrastructure.
+### `Server.java`
+
+Primary source for lifecycle, world reference, plugin handler, event handler, database, networking, uptime, tick timings, packet metrics, and server registry.
+
+### `World.java`
+
+Primary source for players, NPCs, shops, quests, minigames, world state, snapshots, and pathfinding/debug state.
+
+### `Player.java`
+
+Primary source for live player inspection. Never serialize `Player` directly.
+
+### `PluginHandler.java`
+
+Primary source for plugin inventory, trigger relationships, execution, and reload behavior.
+
+### `GameDatabase.java`
+
+Primary source for persisted data and existing administrative/logging capabilities.
+
+### `Group.java`
+
+Existing staff identities can seed dashboard role mappings, but API authorization should remain capability-oriented.
+
+## Admin API model
+
+### Queries
+
+Read-only access to existing server data.
+
+Examples: `server.status`, `servers.list`, `world.status`, `players.list`, `players.get`, `plugins.list`, `plugins.get`, `logs.search`, `snapshots.list`.
+
+### DTOs
+
+Stable transport objects such as `ServerStatus`, `WorldStatus`, `PlayerSummary`, `PlayerDetails`, `PluginSummary`, `PluginDetails`, `TickMetrics`, `PacketMetrics`, `AdminUtility`, and `AuditRecord`.
+
+### Commands
+
+Explicit wrappers around supported operations such as `player.message`, `player.teleport`, `player.kick`, `player.mute`, `player.ban`, `world.broadcast`, `world.saveAll`, `server.restart`, and `plugin.reload`.
+
+Never expose arbitrary `::command` execution from the browser.
+
+### Events
+
+Use live events for meaningful runtime changes such as login/logout, deaths, moderation actions, plugin failures/reloads, server lifecycle changes, and selected world events.
+
+Do not stream every packet or every tick by default.
+
+## Security
+
+The GUI is privileged infrastructure.
 
 Requirements:
 
 - disabled or private-bound by default
 - authenticated operator identity
-- explicit capabilities
+- capability-based authorization
 - server-side validation
 - audit every mutation
 - no arbitrary Java execution
 - no arbitrary SQL
 - no shell access
-- no direct exposure of database credentials
-- no raw session/auth material in payloads
+- no credential exposure
+- sensitive player/account fields role-gated
 
-Existing OpenRSC group membership may seed role mappings, but capability checks should control actual dashboard permissions.
+Technical availability does not imply that sensitive data should be exposed.
 
-Example capabilities:
+Private messages, IP addresses, linked accounts, and recovery/security data require explicit policy decisions.
 
-```text
-server.read
-server.restart
-world.read
-world.broadcast
-players.read
-players.message
-players.teleport
-players.kick
-players.mute
-players.ban
-plugins.read
-plugins.reload
-logs.read
-logs.staff
-```
+## Performance
 
-## Performance rules
+Admin 2026 must not interfere with game operation.
 
-The dashboard must not destabilize game processing.
+Prefer:
 
-Therefore:
+- existing counters and metrics
+- snapshot DTOs
+- bounded event queues
+- rate-limited expensive queries
+- asynchronous dashboard delivery
+- incremental aggregation
 
-- avoid full-world serialization
-- do not synchronously perform remote calls in game/tick paths
-- use bounded event queues
-- aggregate counters incrementally
-- rate-limit expensive queries
-- avoid emitting high-volume packet events by default
-- use existing timing counters where possible
-- fail soft when dashboard consumers disappear
+Avoid:
 
-## First vertical slice
+- full-world serialization
+- synchronous remote work in game processing
+- unbounded event streams
+- duplicate instrumentation where OpenRSC already records the data
 
-The first implementation milestone should remain intentionally small.
+## Implementation strategy
 
-### Server side
+The project should progress in this order:
 
-Implement:
+### 1. Inventory
 
-- isolated admin bootstrap
-- private/local development access
-- `ServerStatus` / `WorldStatus`
-- `PlayerSummary`
-- `PlayerDetails`
-- read-only status endpoint
-- player list endpoint
-- player detail endpoint
-- small admin event bus
-- login/logout events
-- live event transport
-- one audited command, preferably player message first
+Document what OpenRSC already provides: runtime metrics, staff/admin tools, plugin capabilities, logs, DB queries, snapshots, and developer/debug utilities.
 
-### Frontend
+### 2. Expose
 
-Implement:
+Create safe, typed API adapters over existing capabilities.
 
-- dashboard shell
-- server status view
+### 3. Visualize
+
+Build UI surfaces that make the exposed data useful.
+
+### 4. Operate
+
+Add explicit authorized GUI actions for existing administrative tools.
+
+### 5. Extend
+
+Only after the above should Admin 2026 add significant new server capabilities.
+
+## First useful release
+
+A useful first release should include:
+
+- server overview
 - live player list
 - player inspector
-- login/logout feed
-- one command UI
-
-### Acceptance criteria
-
-1. normal OpenRSC startup remains unchanged when admin is disabled
-2. the server can run without the dashboard
-3. the dashboard observes live players
-4. login/logout state updates live
-5. an authorized operator can perform one audited command
-6. unauthorized mutation is rejected
-7. admin/dashboard failure does not interrupt game processing
-
-## Phased roadmap
-
-### Phase 0 — OpenRSC architecture and baseline
-
-- map server lifecycle/integration points
-- verify local server startup
-- identify supported Java/Gradle runtime
-- record baseline tick/memory behavior
-- inventory existing metrics/logging
-- inventory existing admin/mod commands
-- inventory database logging/query capabilities
-- define DTO/event/command conventions
-- define initial auth strategy
-- define verification/test strategy
-
-### Phase 1 — Observation
-
-- admin bootstrap
-- status API
-- players API
-- live event stream
-- dashboard shell
-- player inspector
-- tick/packet metrics
-
-### Phase 2 — Controlled operations
-
-- capability model
-- mutation audit integration
-- message
-- teleport
-- kick
-- mute/ban
-- broadcast
-- save-all
-- graceful restart
-
-### Phase 3 — Plugin observability
-
 - plugin inventory
-- trigger inventory
-- invocation instrumentation
-- timing/error reporting
-- controlled reload
-- quest/content diagnostics
+- admin utility catalog
+- login/logout live feed
+- one or two safe administrative actions
+- audit trail
 
-### Phase 4 — World tooling
+This is more valuable than a broad empty dashboard shell.
 
-- entity inspector
-- shops/spawns
-- world map
-- snapshots
-- pathfinding/debug views
+## Non-goals
 
-### Phase 5 — Historical analytics
-
-- reuse/extend existing logs
-- moderation history
-- economy flows
-- quest/content analytics
-- operational trends
-
-### Phase 6 — Multi-world control plane
-
-OpenRSC can run multiple configured servers in one process, so first determine how much multi-world support can be provided directly from `Server.serversList` before adding external infrastructure.
-
-Only add Redis or an external control plane if deployment topology actually requires it.
-
-## Non-goals for the first release
-
-- rewriting OpenRSC
-- replacing its database layer
-- replacing its networking protocol
-- replacing its plugin system
-- arbitrary remote command execution
-- arbitrary Java/SQL/shell execution
-- introducing microservices without need
-- storing every packet indefinitely
-- making dashboard state authoritative
+- rewrite OpenRSC
+- replace its plugin system
+- replace its database layer
+- recreate existing admin commands
+- expose arbitrary command execution
+- build a second source of truth
+- introduce distributed infrastructure without need
+- make dashboard availability required for gameplay
 
 ## Progress tracking
 
-The canonical lightweight tracker is:
+The canonical lightweight tracker is `admin-2026/docs/tasklist.md`.
 
-- `admin-2026/docs/tasklist.md`
+The tasklist should reflect the same guiding sequence:
 
-Humans and agents should read it before substantive work and update it as tasks move between **Doing**, **To Do**, **Done**, and **Back Burner**.
-
-Detailed research and rationale belong in this README, `AGENTS.md`, or focused files under `admin-2026/docs/`.
+**inventory → expose → visualize → operate → extend**
