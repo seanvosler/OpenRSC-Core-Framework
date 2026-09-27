@@ -1,6 +1,7 @@
 import { ExternalLink, RefreshCw } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { ADMIN_EXTENSION_BRIDGE_VERSION, type AdminExtensionContext, type AdminToExtensionMessage } from '@/app/extensions/extension-bridge'
 import type { AdminExtensionDescriptor } from '@/app/extensions/extension-types'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -8,12 +9,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 interface ExtensionHostProps {
   extension: AdminExtensionDescriptor
+  context?: AdminExtensionContext
 }
 
-export function ExtensionHost({ extension }: ExtensionHostProps) {
+export function ExtensionHost({ extension, context = { server: null } }: ExtensionHostProps) {
   const [loadKey, setLoadKey] = useState(0)
   const [loaded, setLoaded] = useState(false)
   const [bridgeReady, setBridgeReady] = useState(false)
+  const [syncedServerName, setSyncedServerName] = useState<string | null | undefined>(undefined)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
   const extensionOrigin = useMemo(() => {
     if (!extension.url) return null
     try {
@@ -28,16 +32,33 @@ export function ExtensionHost({ extension }: ExtensionHostProps) {
       if (!extensionOrigin || event.origin !== extensionOrigin) return
       if (
         event.data?.source === 'openrsc-world-viewer' &&
-        event.data?.type === 'viewer.ready' &&
-        event.data?.version === 1
+        event.data?.version === ADMIN_EXTENSION_BRIDGE_VERSION
       ) {
-        setBridgeReady(true)
+        if (event.data.type === 'viewer.ready') {
+          setBridgeReady(true)
+        }
+        if (event.data.type === 'context.applied') {
+          setSyncedServerName(event.data.serverName ?? null)
+        }
       }
     }
 
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
   }, [extensionOrigin])
+
+  useEffect(() => {
+    if (!bridgeReady || !extensionOrigin || !iframeRef.current?.contentWindow) return
+
+    const message: AdminToExtensionMessage = {
+      source: 'openrsc-admin',
+      type: 'context.changed',
+      version: ADMIN_EXTENSION_BRIDGE_VERSION,
+      context,
+    }
+
+    iframeRef.current.contentWindow.postMessage(message, extensionOrigin)
+  }, [bridgeReady, context, extensionOrigin])
 
   if (extension.mode !== 'iframe' || !extension.url) {
     return (
@@ -58,17 +79,21 @@ export function ExtensionHost({ extension }: ExtensionHostProps) {
             <h2 className="text-lg font-semibold">{extension.name}</h2>
             <Badge variant="outline">Admin Extension</Badge>
           </div>
-          <p className="text-xs text-muted-foreground">Hosted independently · Phase C bridge</p>
+          <p className="text-xs text-muted-foreground">Hosted independently · Phase B context bridge</p>
         </div>
 
         <div className="ml-auto flex items-center gap-2">
           <Badge variant="outline">{bridgeReady ? 'Connected' : loaded ? 'Frame loaded' : 'Connecting'}</Badge>
+          {syncedServerName !== undefined && (
+            <Badge variant="outline">Context: {syncedServerName ?? 'No server'}</Badge>
+          )}
           <Button
             variant="outline"
             size="sm"
             onClick={() => {
               setLoaded(false)
               setBridgeReady(false)
+              setSyncedServerName(undefined)
               setLoadKey((value) => value + 1)
             }}
           >
@@ -90,6 +115,7 @@ export function ExtensionHost({ extension }: ExtensionHostProps) {
       <Card className="m-4 min-h-0 flex-1 overflow-hidden p-0">
         <CardContent className="h-full min-h-[720px] p-0">
           <iframe
+            ref={iframeRef}
             key={loadKey}
             title={extension.name}
             src={extension.url}

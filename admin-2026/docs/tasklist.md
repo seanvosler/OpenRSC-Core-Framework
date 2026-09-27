@@ -101,8 +101,12 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ### Phase 5 — World & developer tooling
 
+- [x] Add generic hosted World Viewer Admin Extension with iframe bridge.
+- [x] Validate full static 3D world rendering from baked assets.
+- [x] Add versioned two-way Admin/viewer context handshake.
+- [ ] Connect a live Observer[] / world-state source.
 - [ ] Add entity, shop, spawn, and snapshot inspectors.
-- [ ] Evaluate and add live world map.
+- [ ] Add live world observation mode.
 - [ ] Add pathfinding/debug views.
 - [ ] Add runtime configuration viewer.
 - [ ] Evaluate safe PCAP/debug tooling exposure.
