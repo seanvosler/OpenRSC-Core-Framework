@@ -47,16 +47,16 @@ Do not guess unresolved coordinates, item IDs, quest IDs, NPC IDs, or resource I
 
 ## 4. Lifecycle safety
 
-- [ ] Start scenario without affecting normal server startup when disabled.
+- [x] Start scenario without affecting normal server startup when disabled.
 - [ ] Stop one actor cleanly.
-- [ ] Stop an entire scenario cleanly.
-- [ ] Stop all synthetic actors cleanly.
-- [ ] Remove actors from world/player/region indexes.
-- [ ] Remove or stop all owned synthetic behavior events.
+- [x] Stop an entire scenario cleanly.
+- [x] Stop all synthetic actors cleanly.
+- [x] Remove actors from world/player/region indexes.
+- [x] Remove or stop all owned synthetic behavior events.
 - [ ] Clear queued synthetic client packets.
-- [ ] Confirm no persistence/logout/social side effects intended for real accounts.
-- [ ] Confirm scenario restart does not leak actors/events/state.
-- [ ] Confirm clean shutdown when server stops or restarts.
+- [x] Confirm no persistence/logout side effects during synthetic teardown.
+- [x] Confirm scenario restart does not leak actors/events/state.
+- [x] Confirm server shutdown stops synthetic actors before normal player persistence.
 - [ ] Add lifecycle tests for create -> register -> tick -> unregister -> destroy.
 
 ## 5. Behavior authenticity
@@ -111,16 +111,16 @@ Do not guess unresolved coordinates, item IDs, quest IDs, NPC IDs, or resource I
 - [x] Synthetic actors appear in normal player counts.
 - [x] Scaffold dedicated `/developer/synthetic-players` Admin page using the existing live player feed.
 - [ ] Add synthetic-player list endpoint.
-- [ ] Expose actor identity/profile/scenario.
-- [ ] Expose behavior name.
-- [ ] Expose behavior state.
+- [x] Expose actor identity through normal player API and dedicated synthetic read model; profile/scenario metadata remains future work.
+- [x] Expose behavior name.
+- [x] Expose behavior state.
 - [ ] Expose target entity/object/location where safe.
-- [ ] Expose coordinates.
+- [x] Expose coordinates.
 - [ ] Expose relevant skills/XP.
 - [ ] Expose inventory/equipment summaries.
 - [ ] Expose actor age / last decision / last successful action.
 - [ ] Expose stuck/error state.
-- [ ] Distinguish synthetic actors visually from real players.
+- [x] Expose explicit `synthetic` metadata and distinguish synthetic actors in the dedicated Developer panel.
 - [ ] Add scenario-level status: requested/running/stopped/error counts.
 - [ ] Add explicit dev-only start/stop scenario commands.
 - [ ] Keep synthetic controls separate from normal moderation actions.
@@ -153,11 +153,11 @@ Do not guess unresolved coordinates, item IDs, quest IDs, NPC IDs, or resource I
 
 ## 11. Safety and operational controls
 
-- [ ] Harness disabled by default.
+- [x] Harness disabled by default.
 - [ ] Require explicit dev/test enable flag.
-- [ ] Add server-side maximum population limit.
+- [x] Add server-side maximum bootstrap population limit.
 - [ ] Add scenario maximum lifetime / optional auto-stop.
-- [ ] Add emergency `stop all synthetic actors` operation.
+- [x] Add idempotent server-side `stopAll()` lifecycle operation; Admin command wiring remains gated on auth/audit.
 - [ ] Prevent synthetic actors from connecting to or mutating unintended worlds.
 - [ ] Prevent public-production enablement by accidental default configuration.
 - [ ] Log scenario start/stop and configuration source.

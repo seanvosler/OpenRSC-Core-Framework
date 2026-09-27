@@ -1,6 +1,7 @@
 import { Activity, Bot, MapPin, Power, Skull, Users } from 'lucide-react'
 
 import { usePlayers } from '@/api/queries/players'
+import { useSyntheticPopulation } from '@/api/queries/synthetic-population'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,8 +9,11 @@ import { Input } from '@/components/ui/input'
 
 export function SyntheticPlayersPage() {
   const playersQuery = usePlayers()
+  const populationQuery = useSyntheticPopulation()
   const server = playersQuery.data?.servers[0]
-  const syntheticPlayers = server?.players.filter((player) => player.databaseId < 0) ?? []
+  const population = populationQuery.data?.servers[0]
+  const syntheticPlayers = server?.players.filter((player) => player.synthetic) ?? []
+  const liveActors = population?.actors ?? []
 
   return (
     <div className="space-y-4 p-4 lg:p-6">
@@ -36,7 +40,7 @@ export function SyntheticPlayersPage() {
             <Users className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-4 text-2xl font-semibold">
-            {playersQuery.isPending ? '…' : syntheticPlayers.length}
+            {populationQuery.isPending ? '…' : population?.actorCount ?? syntheticPlayers.length}
           </CardContent>
         </Card>
 
@@ -47,7 +51,13 @@ export function SyntheticPlayersPage() {
           </CardHeader>
           <CardContent className="px-4">
             <Badge variant="outline" className={playersQuery.isError ? 'text-red-300' : 'text-emerald-300'}>
-              {playersQuery.isPending ? 'Connecting' : playersQuery.isError ? 'Unavailable' : 'Live player feed'}
+              {populationQuery.isPending
+                ? 'Connecting'
+                : populationQuery.isError
+                  ? 'Unavailable'
+                  : population?.running
+                    ? 'Behavior runtime active'
+                    : 'Runtime stopped'}
             </Badge>
           </CardContent>
         </Card>
@@ -58,7 +68,7 @@ export function SyntheticPlayersPage() {
             <Power className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent className="px-4">
-            <Badge variant="outline" className="text-amber-300">Read-only scaffold</Badge>
+            <Badge variant="outline" className="text-emerald-300">Read model live</Badge>
           </CardContent>
         </Card>
       </section>
@@ -123,28 +133,39 @@ export function SyntheticPlayersPage() {
           <CardHeader>
             <CardTitle>Live synthetic actors</CardTitle>
             <CardDescription>
-              Currently inferred from the synthetic negative database-ID convention in the normal player API.
+              Live synthetic runtime metadata from the dedicated Admin read model; player identity is cross-checked through the normal player feed.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {playersQuery.isPending ? (
-              <div className="text-sm text-muted-foreground">Loading live players…</div>
-            ) : syntheticPlayers.length === 0 ? (
+            {populationQuery.isPending ? (
+              <div className="text-sm text-muted-foreground">Loading synthetic runtime…</div>
+            ) : liveActors.length === 0 ? (
               <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                No synthetic actors are currently visible on {server?.serverName ?? 'the selected server'}.
+                No synthetic actors are currently running on {population?.serverName ?? server?.serverName ?? 'the selected server'}.
               </div>
             ) : (
-              syntheticPlayers.map((player) => (
-                <div key={player.index} className="flex items-center justify-between gap-3 rounded-md border p-3">
-                  <div className="min-w-0">
-                    <div className="truncate font-medium">{player.username}</div>
-                    <div className="font-mono text-xs text-muted-foreground">
-                      PID {player.index} · DB {player.databaseId} · {player.x},{player.y}
+              liveActors.map((actor) => {
+                const player = syntheticPlayers.find((candidate) => candidate.index === actor.playerIndex)
+
+                return (
+                  <div key={actor.playerIndex} className="rounded-md border p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{actor.username}</div>
+                        <div className="font-mono text-xs text-muted-foreground">
+                          PID {actor.playerIndex} · DB {actor.databaseId} · {actor.x},{actor.y}
+                        </div>
+                      </div>
+                      <Badge variant="outline">{actor.behavior}</Badge>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      <span>State: {actor.state || '—'}</span>
+                      <span>Decisions: {actor.decisionCount.toLocaleString()}</span>
+                      {player ? <span>Lvl {player.combatLevel}</span> : null}
                     </div>
                   </div>
-                  <Badge variant="outline">Lvl {player.combatLevel}</Badge>
-                </div>
-              ))
+                )
+              })
             )}
           </CardContent>
         </Card>

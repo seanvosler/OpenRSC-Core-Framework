@@ -11,6 +11,9 @@ export interface PlayerSummary {
   questPoints: number
   groupId: number
   groupName: string
+  synthetic: boolean
+  syntheticBehavior: string
+  syntheticState: string
 }
 
 export interface PlayerList {

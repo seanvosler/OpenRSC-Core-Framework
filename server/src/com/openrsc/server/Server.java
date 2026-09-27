@@ -36,6 +36,7 @@ import com.openrsc.server.service.IPlayerService;
 import com.openrsc.server.service.PcapLoggerService;
 import com.openrsc.server.service.PlayerService;
 import com.openrsc.server.synthetic.SyntheticPlayerBootstrap;
+import com.openrsc.server.synthetic.SyntheticPopulationService;
 import com.openrsc.server.util.*;
 import com.openrsc.server.util.languages.I18NService;
 import com.openrsc.server.util.rsc.CaptchaGenerator;
@@ -95,6 +96,7 @@ public class Server implements Runnable {
 	private final I18NService i18nService;
 
 	private final World world;
+	private final SyntheticPopulationService syntheticPopulationService;
 	private final String name;
 
 	private GameTickEvent shutdownEvent;
@@ -287,6 +289,7 @@ public class Server implements Runnable {
 		loginExecutor = new LoginExecutor(this);
 		world = new World(this);
 		gameEventHandler = new GameEventHandler(this);
+		syntheticPopulationService = new SyntheticPopulationService(this);
 		gameUpdater = new GameStateUpdater(this);
 		gameLogger = new MySqlGameLogger(this, (MySqlGameDatabase)database);
 		pcapLogger = new PcapLoggerService(this);
@@ -590,6 +593,7 @@ public class Server implements Runnable {
 					return;
 				}
 				LOGGER.info("Server stop requested");
+				SyntheticPlayerBootstrap.stopIfRunning(this);
 				getWorld().unloadPlayers();
 
 				scheduledExecutor.shutdown();
@@ -1167,6 +1171,10 @@ public class Server implements Runnable {
 
 	public synchronized World getWorld() {
 		return world;
+	}
+
+	public SyntheticPopulationService getSyntheticPopulationService() {
+		return syntheticPopulationService;
 	}
 
 	public String getName() {

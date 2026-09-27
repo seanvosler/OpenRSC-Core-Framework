@@ -46,7 +46,15 @@ public final class SyntheticPlayerBootstrap {
             LOGGER.warn("Synthetic player count {} clamped to {}", requestedCount, count);
         }
 
-        final SyntheticPopulationService population = new SyntheticPopulationService(server);
+        final SyntheticPopulationService population = server.getSyntheticPopulationService();
+        if (population.isRunning()) {
+            LOGGER.info("Synthetic population already active; start request ignored");
+            return;
+        }
+        if (population.size() > 0) {
+            LOGGER.warn("Cleaning stale synthetic population state before start");
+            population.stopAll();
+        }
         final String requestedBehavior = System.getProperty(BEHAVIOR_PROPERTY, "mixed-basic").trim().toLowerCase();
 
         for (int i = 1; i <= count; i++) {
@@ -87,6 +95,10 @@ public final class SyntheticPlayerBootstrap {
             "Synthetic population ready: {} players (world total={})",
             count, server.getWorld().getPlayers().size()
         );
+    }
+
+    public static int stopIfRunning(final Server server) {
+        return server.getSyntheticPopulationService().stopAll();
     }
 
     private static Player createSyntheticPlayer(final Server server, final int ordinal) {

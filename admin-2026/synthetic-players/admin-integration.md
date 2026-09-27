@@ -47,11 +47,11 @@ The generic Admin player API already observes synthetic actors because they are 
 The route is intentionally read-only today.
 
 It:
-- consumes the existing live player feed;
-- identifies current synthetic fixtures by the experimental negative database-ID convention;
-- displays live synthetic actors when present;
-- provides editable spawn/count/behavior fields for layout and contract design;
-- keeps Spawn and Stop All buttons disabled.
+- consumes the existing live player feed with explicit `synthetic` metadata;
+- consumes `GET /admin/api/synthetic-population` for synthetic runtime state;
+- displays live actor behavior, state, decision count, identity, and coordinates;
+- provides editable spawn/count/behavior fields for the future start-command contract;
+- keeps Spawn and Stop All buttons disabled until Admin mutation authorization/audit is merged.
 
 Do not enable mutations until Admin authentication/capabilities/audit and clean synthetic teardown are complete.
 
@@ -129,16 +129,23 @@ Scenario-level status should expose requested/running/stopped/error counts and r
 
 ## Lifecycle gate before enabling controls
 
-Spawn/stop controls remain disabled until:
+Spawn/stop controls remain disabled until the remaining Admin mutation gates are complete.
 
-- actor teardown safely removes world/region/player indexes;
-- behavior events are cancelled;
-- outbound queues are cleared;
-- restart does not leak actors;
-- stop-all is proven;
+Proven on this branch:
+
+- actor teardown removes world/region/player indexes;
+- shared and player-owned behavior events are stopped/removed;
+- repeated start/stop does not leak actors/events/state;
+- stop-all is idempotent;
+- server shutdown removes synthetic actors before normal player persistence;
+- a server-side bootstrap population ceiling exists.
+
+Still required before enabling buttons:
+
 - Admin authentication and capabilities are live;
 - mutations are audited;
-- population ceilings and dev-only gating exist.
+- explicit validated runtime start/stop commands are wired;
+- dev-only/production policy gating is enforced at the command boundary.
 
 ## Integration principle
 

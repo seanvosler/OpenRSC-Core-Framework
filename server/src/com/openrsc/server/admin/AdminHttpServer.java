@@ -60,6 +60,7 @@ public final class AdminHttpServer {
 			httpServer.createContext("/admin/api/status", AdminHttpServer::handleStatus);
 			httpServer.createContext("/admin/api/plugins", AdminHttpServer::handlePlugins);
 			httpServer.createContext("/admin/api/players", AdminHttpServer::handlePlayers);
+			httpServer.createContext("/admin/api/synthetic-population", AdminHttpServer::handleSyntheticPopulation);
 			httpServer.createContext("/admin/api/events", AdminHttpServer::handleEvents);
 
 			final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -161,6 +162,30 @@ public final class AdminHttpServer {
 			.put("servers", playerLists);
 
 		sendJson(exchange, 200, response);
+	}
+
+	private static void handleSyntheticPopulation(final HttpExchange exchange) throws IOException {
+		if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "GET");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		final List<Server> servers = new ArrayList<>(Server.serversList.values());
+		servers.sort(Comparator.comparing(Server::getName));
+
+		final JSONArray populations = new JSONArray();
+		for (final Server server : servers) {
+			populations.put(SyntheticPopulationStatus.from(server).toJson());
+		}
+
+		sendJson(
+			exchange,
+			200,
+			new JSONObject()
+				.put("generatedAtEpochMillis", System.currentTimeMillis())
+				.put("servers", populations)
+		);
 	}
 
 	private static void handleEvents(final HttpExchange exchange) throws IOException {

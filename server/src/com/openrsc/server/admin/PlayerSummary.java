@@ -19,6 +19,9 @@ public final class PlayerSummary {
 	private final int questPoints;
 	private final int groupId;
 	private final String groupName;
+	private final boolean synthetic;
+	private final String syntheticBehavior;
+	private final String syntheticState;
 
 	private PlayerSummary(final Player player) {
 		databaseId = player.getDatabaseID();
@@ -31,6 +34,9 @@ public final class PlayerSummary {
 		questPoints = player.getQuestPoints();
 		groupId = player.getGroupID();
 		groupName = Group.GROUP_NAMES.getOrDefault(groupId, "Unknown");
+		synthetic = player.getAttribute("syntheticplayer", false);
+		syntheticBehavior = synthetic ? player.getAttribute("syntheticBehavior", "") : "";
+		syntheticState = synthetic ? player.getAttribute("syntheticState", "") : "";
 	}
 
 	public static PlayerSummary from(final Player player) {
@@ -48,6 +54,9 @@ public final class PlayerSummary {
 			.put("fatigue", fatigue)
 			.put("questPoints", questPoints)
 			.put("groupId", groupId)
-			.put("groupName", groupName);
+			.put("groupName", groupName)
+			.put("synthetic", synthetic)
+			.put("syntheticBehavior", syntheticBehavior)
+			.put("syntheticState", syntheticState);
 	}
 }

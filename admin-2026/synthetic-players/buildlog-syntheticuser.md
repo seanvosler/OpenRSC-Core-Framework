@@ -46,3 +46,17 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - 2026-09-26: Scaffolded native Admin route `/developer/synthetic-players`. It already reads the normal live player feed and shows synthetic actors via the current negative database-ID convention.
 - Added read-only configuration UI for count, behavior/scenario, and spawn X/Y. Spawn and Stop All controls are intentionally disabled pending authenticated/audited mutation APIs and clean lifecycle teardown.
 - Documented the future command/capability boundary in `admin-integration.md`. Frontend production build succeeds; Vitest reports 4 files / 7 tests passing.
+
+## 2026-09-27 — lifecycle + Admin read model checkpoint
+
+- Made `SyntheticPopulationService` a first-class per-server service.
+- Added idempotent `stopAll()` teardown.
+- Teardown stops the shared behavior loop and all actor-owned game events.
+- Synthetic players are reset, marked offline, removed from region membership, username-hash lookup, and indexed `PlayerList` without invoking normal account save/logout.
+- Server shutdown now stops synthetic actors before `World.unloadPlayers()`.
+- Repeated 3-actor start → stop → start → stop smoke test passed with no synthetic save attempts or leaked world/region/event state.
+- Added explicit `synthetic`, behavior, and state metadata to the normal Admin player summary.
+- Added read-only `GET /admin/api/synthetic-population`.
+- Wired `/developer/synthetic-players` to the dedicated runtime read model.
+- Browser-verified three live synthetic actors and captured `~/Desktop/OpenRSC-Synthetic-Panel-Live.png`.
+- Spawn/Stop controls remain disabled pending the shared Admin auth/capability/audit mutation layer.
