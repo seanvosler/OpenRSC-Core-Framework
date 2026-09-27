@@ -4,6 +4,7 @@ import { AppShell } from '@/app/shell/app-shell'
 import { OverviewPage } from '@/features/overview/overview-page'
 import { PlayersPage } from '@/features/players/players-page'
 import { PluginsPage } from '@/features/plugins/plugins-page'
+import { WorldPage } from '@/features/world/world-page'
 import { PlaceholderPage } from '@/features/shared/placeholder-page'
 
 const rootRoute = createRootRoute({ component: AppShell })
@@ -26,6 +27,12 @@ const pluginsRoute = createRoute({
   component: PluginsPage,
 })
 
+const worldRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/world',
+  component: WorldPage,
+})
+
 const makePlaceholder = (path: string, title: string, description: string) =>
   createRoute({
     getParentRoute: () => rootRoute,
@@ -37,7 +44,7 @@ const routeTree = rootRoute.addChildren([
   overviewRoute,
   playersRoute,
   pluginsRoute,
-  makePlaceholder('/world', 'World', 'Entities, shops, spawns, snapshots, maps, and world diagnostics.'),
+  worldRoute,
   makePlaceholder('/utilities', 'Utilities', 'Discoverable wrappers around safe OpenRSC administrative actions.'),
   makePlaceholder('/logs', 'Logs', 'Staff, login, trade, moderation, and operational history.'),
   makePlaceholder('/developer', 'Developer', 'Tick, packet, event, pathfinding, and runtime debug tools.'),
