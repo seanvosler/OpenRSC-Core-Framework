@@ -52,6 +52,7 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - [ ] Add OpenAPI-generated client/type workflow.
 - [ ] Add Playwright browser-test baseline.
 - [ ] Add route-level code splitting for heavy visualization packages.
+- [x] Add generic hosted Admin Extension registry/host and wire the World Viewer route.
 
 ## To Do
 
