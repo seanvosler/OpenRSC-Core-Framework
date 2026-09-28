@@ -1,5 +1,7 @@
 # Admin Extensions
 
+> High-level system diagram: [`architecture-v0.0.5.md`](./architecture-v0.0.5.md)
+
 > Architecture concept for optional tools that appear as first-class parts of Admin 2026 without requiring every tool to live inside the Admin repository or runtime.
 
 ## Purpose
@@ -27,6 +29,21 @@ Admin Extension
 ~~~
 
 Use **extension**, not **plugin**, for this concept so the frontend/tooling architecture does not collide with OpenRSC's established plugin vocabulary.
+
+## Current implementation status
+
+As of 2026-09-27, the first extension-host slice is implemented:
+
+- static extension registry;
+- reusable iframe `ExtensionHost`;
+- `/world` registered as `world-viewer`;
+- configurable hosted URL;
+- loading/reload/standalone states;
+- versioned, origin-validated two-way bridge;
+- selected server-name context;
+- unit and browser validation.
+
+This is currently **Level C plus the first Level B context bridge**. Level A native React integration remains future work.
 
 ## Product principle
 

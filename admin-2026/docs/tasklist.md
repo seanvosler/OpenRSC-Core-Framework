@@ -12,19 +12,15 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ## Doing
 
-### Next vertical slice — first mutation browser integration
+### Current lanes — Operate + World visualization
 
-See `admin-2026/docs/auth-and-audit.md` for the current security model.
+See `admin-2026/docs/auth-and-audit.md` and `admin-2026/docs/world-observer-extension.md`.
 
-- [x] Audit the existing OpenRSC player-alert implementation and permission rules.
-- [x] Add a reusable capability authorization guard for authenticated operators.
-- [x] Persist mutation audit records through existing OpenRSC logging infrastructure.
-- [x] Define typed mutation result/error contracts.
-- [x] Grant `players.message` only to groups matching the existing moderator alert permission boundary.
-- [x] Add authenticated `POST /admin/api/players/message` for online-player alerts.
-- [ ] Add Java test coverage for authenticated/unauthenticated/capability-denied paths.
-- [x] Add the browser operator-session/action flow for the first player alert mutation.
-- [ ] Verify successful delivery end-to-end against a real logged-in client.
+- [ ] Add Java test coverage for authenticated/unauthenticated/capability-denied mutation paths.
+- [ ] Verify `players.message` delivery end-to-end against a real logged-in client.
+- [x] Integrate the World Viewer as the first production-shaped Admin Extension.
+- [x] Verify `/world` bridge handshake, Runescape server context, WebGL canvas, and zero failed viewer requests.
+- [ ] Define the next read-only live world-state DTO/transport boundary separately from the hosted viewer integration.
 
 ### Phase 0 — Inventory and baseline
 
@@ -56,6 +52,7 @@ See `admin-2026/docs/auth-and-audit.md` for the current security model.
 - [ ] Add OpenAPI-generated client/type workflow.
 - [ ] Add Playwright browser-test baseline.
 - [ ] Add route-level code splitting for heavy visualization packages.
+- [x] Add generic hosted Admin Extension registry/host and wire the World Viewer route.
 
 ## To Do
 
@@ -106,8 +103,9 @@ See `admin-2026/docs/auth-and-audit.md` for the current security model.
 
 ### Phase 5 — World & developer tooling
 
+- [ ] Connect a live Observer[] / world-state source.
 - [ ] Add entity, shop, spawn, and snapshot inspectors.
-- [ ] Evaluate and add live world map.
+- [ ] Add live world observation mode.
 - [ ] Add pathfinding/debug views.
 - [ ] Add runtime configuration viewer.
 - [ ] Evaluate safe PCAP/debug tooling exposure.
@@ -134,16 +132,34 @@ See `admin-2026/docs/auth-and-audit.md` for the current security model.
 
 ### Auth/capability/audit foundation — 2026-09-26
 
-- [x] Define stable read and future mutation capability identifiers.
+- [x] Define stable read and mutation capability identifiers.
 - [x] Map OpenRSC groups to conservative default read capability bundles.
 - [x] Add transport-safe `AdminOperator` identity/session metadata.
 - [x] Add local-development bearer-token authentication service.
 - [x] Add read-only `GET /admin/api/session` introspection endpoint.
-- [x] Add mutation `AdminAuditRecord` contract.
-- [x] Keep mutation capabilities ungranted and mutation endpoints absent.
-- [x] Document the production-session direction and SSE authentication constraint.
-- [x] Verify `auth_not_configured` behavior against a running default world.
-- [ ] Add normal Java test coverage for successful/invalid token paths when a dedicated admin test harness is available.
+- [x] Add mutation `AdminAuditRecord` contract and durable logging path.
+- [x] Add reusable capability authorization and typed mutation results.
+- [x] Grant the first audited mutation capability, `players.message`, to the existing moderator-alert permission boundary.
+- [x] Add authenticated `POST /admin/api/players/message`.
+- [x] Add the first browser operator-session/action flow.
+- [ ] Add normal Java test coverage for successful/invalid/forbidden mutation paths when a dedicated admin test harness is available.
+- [ ] Verify successful player-alert delivery against a real connected client.
+
+### World Viewer Admin Extension bridge — 2026-09-27
+
+- [x] Add generic Admin Extension descriptor/registry/host.
+- [x] Replace the `/world` placeholder with the hosted World Viewer extension.
+- [x] Keep the renderer independently runnable and independently failure-isolated.
+- [x] Add configurable `VITE_WORLD_VIEWER_URL`.
+- [x] Add versioned `viewer.ready` handshake with strict origin validation.
+- [x] Add Admin -> viewer `context.changed` and viewer -> Admin `context.applied`.
+- [x] Pass selected Admin server name through the bridge.
+- [x] Reuse upstream `gh-pages` baked assets for local development without rebaking Java assets.
+- [x] Add local-only compatibility aliases for the published asset-layout revision.
+- [x] Browser-verify WebGL initialization and complete 747-cell world loading with no viewer request failures.
+- [x] Add repeatable local setup/dev scripts.
+- [x] Document the remaining live `Observer[]` / server-world-state boundary.
+
 
 ### Login/logout event stream vertical slice — 2026-09-26
 
@@ -218,6 +234,8 @@ See `admin-2026/docs/auth-and-audit.md` for the current security model.
 - **2026-09-26:** Completed online-player summaries and a live Players page; the default world correctly renders a zero-player empty state.
 - **2026-09-26:** Completed bounded login/logout event plumbing and live SSE activity feed; real client lifecycle validation remains pending.
 - **2026-09-26:** Authentication/capabilities/audit contract is now the active prerequisite for the first mutation.
+- **2026-09-27:** Completed the hosted/connected World Viewer Admin Extension bridge; full static 3D world rendering is verified and live world-state transport is the next world lane.
+- **2026-09-27:** Published the Mermaid system architecture snapshot as `docs/architecture-v0.0.5.md`.
 
 ## Back Burner
 

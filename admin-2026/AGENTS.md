@@ -2,7 +2,7 @@
 
 Guidance for agentic coding workers contributing to Admin 2026 in the OpenRSC Core Framework.
 
-Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, and `admin-2026/docs/gui-stack.md` before implementing substantive Admin 2026 work. Read `admin-2026/docs/next-slices.md` when working on the current plugin/player/event sequence.
+Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, `admin-2026/docs/gui-stack.md`, and `admin-2026/docs/architecture-v0.0.5.md` before implementing substantive Admin 2026 work. Read `admin-2026/docs/next-slices.md` for the current lane ordering. For extension work, also read `admin-2026/docs/admin-extensions.md` and `admin-2026/docs/world-observer-extension.md`.
 
 ## Mission
 
@@ -36,7 +36,10 @@ Current facts:
 - React Flow is already used for the plugin-flow concept
 - Vitest + React Testing Library cover provider and status-client behavior
 - `npm run build` currently succeeds
-- OpenAPI client generation, reusable DataTable/form abstractions, Playwright E2E, and route-level code splitting remain unfinished
+- the hosted World Viewer Admin Extension is working at `/world` with a versioned, origin-validated two-way context bridge
+- the full static 3D world has been browser-verified through the extension using baked assets
+- live `Observer[]` / authoritative world-state transport is not implemented yet
+- OpenAPI client generation, reusable form abstractions, Playwright E2E baseline, and route-level code splitting remain unfinished
 - the current read-only backend contract is documented in `docs/backend-api.md`
 
 For frontend work, preserve the domain-oriented structure described in `docs/gui-stack.md`. Generated API code belongs in `src/api/generated/` and must never be edited manually.
@@ -45,11 +48,12 @@ For frontend work, preserve the domain-oriented structure described in `docs/gui
 
 The read-only control plane and initial auth/capability/audit foundation are live.
 
-Before the first mutation, audit the existing **player message** behavior and permissions, add a reusable server-side capability guard, choose audit persistence, and add denied/allowed-path tests.
+The first audited mutation, `players.message`, is implemented behind authentication, capability checks, validation, game-thread dispatch, and durable audit logging.
 
-Read `admin-2026/docs/auth-and-audit.md` before working on authentication or mutations.
+Read `admin-2026/docs/auth-and-audit.md` before extending mutation behavior. Grant additional mutation capabilities only operation-by-operation after auditing the corresponding OpenRSC behavior.
 
-Mutation capabilities are intentionally defined but **not granted** by the current default policy.
+The World Viewer is a parallel read-only lane. Keep the renderer source-agnostic, independently deployable, and failure-isolated. The current integration target is the hosted Admin Extension and narrow server-context bridge; live world-state transport remains a separate later boundary.
+
 
 ## Progress tracking
 

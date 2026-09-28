@@ -1,6 +1,6 @@
 # Admin 2026 Backend API
 
-_Last updated: 2026-09-26_
+_Last updated: 2026-09-27_
 
 This document records the first live Java integration between OpenRSC and the Admin 2026 SPA.
 
@@ -24,6 +24,7 @@ Implemented:
 - first capability-gated, audited online-player alert mutation
 
 Additional mutations remain disabled until they are audited and granted operation-by-operation.
+
 
 ## Enable the listener
 
@@ -354,7 +355,7 @@ Live values currently drive:
 - uptime
 - rolling tick-duration chart
 
-Player rows, plugin cards, activity feed, and admin actions remain mock/planned until their corresponding APIs exist.
+Player rows, plugin/content views, and the login/logout activity feed are live. Administrative mutation actions remain disabled/planned until authentication, capability checks, and auditing are established.
 
 ## Security boundary
 
@@ -388,13 +389,18 @@ A live browser verification confirmed the SPA rendered values returned by the Ja
 
 ## Build/runtime notes
 
-The repository's Gradle 7.0 wrapper does not currently evaluate cleanly on this checkout:
+The current test Mac exposes two incompatible Java choices for the legacy server build:
 
-- Java 18 causes Groovy/Gradle class-version incompatibility
-- Java 8 reaches project evaluation but `ant.importBuild("build.xml")` collides with Gradle's existing `clean` task
+- Java 18 is a full JDK, but Gradle 7.0/Groovy cannot evaluate under class-file major version 62.
+- Java 8 can run the Gradle wrapper under Rosetta, but the installed Java 8 is only a JRE/browser runtime and has no `tools.jar`, so it cannot compile Java sources.
 
-The legacy Ant build file targets Java 8 source/target, but Ant was not installed on the test machine.
+Additional legacy build friction observed while probing:
 
-For this integration checkpoint, the full core source tree was successfully compiled directly with `javac -source 8 -target 8` and `server/lib/*`.
+- `ant.importBuild("build.xml")` imports an Ant `clean` target that collides with Gradle's built-in `clean` task.
+- the MySQL Connector/J dependency uses the legacy group coordinate `mysql:mysql-connector-j:9.4.0`; current Maven Central publishes it as `com.mysql:mysql-connector-j:9.4.0`.
 
-This is a baseline/tooling issue, not an Admin 2026 API failure. Do not silently modernize the repository build as part of unrelated admin work.
+Experimental local fixes were reverted; no build-system modernization is part of the World Viewer extension commits.
+
+A proper JDK compatible with the existing Gradle 7-era build (for example JDK 11, subject to verification) is the next prerequisite for server-side world-observation work.
+
+This is a baseline/tooling issue, not an Admin 2026 API failure. Do not silently modernize the repository build as part of unrelated Admin work.

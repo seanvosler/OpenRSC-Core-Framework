@@ -1,5 +1,7 @@
 # World Observer Admin Extension
 
+> High-level system diagram: [`architecture-v0.0.5.md`](./architecture-v0.0.5.md)
+
 > Architecture and integration plan for using rsc-map-renderer-observe as the world-visualization and observation engine for Admin 2026.
 
 Repositories:
@@ -1229,3 +1231,78 @@ The World Viewer should feel like a first-class part of Admin 2026 while remaini
 ## Primary principle
 
 **Observe first, inspect second, diagnose third, and only then operate. Keep the renderer independent; make the Admin integration native in experience rather than monolithic in implementation.**
+
+---
+
+# Current implementation status — 2026-09-27
+
+The first hosted/connected bridge now exists on the `admin/world-viewer-extension`
+worktree branch.
+
+Implemented:
+
+- generic Admin extension descriptor and registry;
+- reusable iframe `ExtensionHost`;
+- `/world` backed by the registered `world-viewer` extension;
+- configurable `VITE_WORLD_VIEWER_URL`;
+- versioned `viewer.ready` handshake;
+- origin validation on Admin -> viewer and viewer -> Admin messages;
+- versioned `context.changed` Admin message;
+- `context.applied` viewer acknowledgement;
+- selected server name passed through extension context;
+- browser validation with a real WebGL canvas;
+- full static-world load against upstream baked assets;
+- unit coverage for rejecting the wrong origin and sending context.
+
+The renderer-side bridge lives in `viewer/src/adminBridge.ts`.
+
+## Local development without rebaking Java assets
+
+The upstream renderer publishes a complete baked asset tree on its `gh-pages`
+branch. That can be used for extension development when the local Java/Maven
+bake toolchain is unavailable.
+
+From the framework checkout:
+
+~~~bash
+admin-2026/scripts/setup-world-viewer-assets.sh
+admin-2026/scripts/dev-world-extension.sh
+~~~
+
+The defaults assume sibling checkouts under the same parent directory:
+
+~~~text
+OpenRSC-Core-Framework-world-ext/
+rsc-map-renderer-observe/
+rsc-map-renderer-gh-pages/
+~~~
+
+Default local endpoints:
+
+~~~text
+World Viewer  http://127.0.0.1:5173
+Admin 2026    http://127.0.0.1:5186
+World route   http://127.0.0.1:5186/world
+~~~
+
+The setup script creates local compatibility aliases because the currently
+published `gh-pages` assets use the newer `/api/world/*.json` layout while this
+viewer fork still requests the immediately preceding paths.
+
+This compatibility shim is for local development only. It should not become the
+long-term production asset contract.
+
+## Verified browser behavior
+
+With the baked `gh-pages` asset tree:
+
+- Admin receives `viewer.ready`;
+- Admin sends extension context;
+- viewer acknowledges the selected server context;
+- WebGL initializes successfully;
+- the renderer completes the full world-cell load;
+- viewer asset requests complete without failures;
+- no viewer console errors are produced.
+
+The remaining missing runtime integration is live world/entity data. The current
+local asset shim intentionally supplies an empty demo entity list.

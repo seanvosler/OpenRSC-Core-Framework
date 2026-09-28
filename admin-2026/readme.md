@@ -25,6 +25,8 @@ expose
 visualize
    ↓
 operate
+   ↓
+extend
 ```
 
 That sequence should guide implementation priorities.
@@ -50,6 +52,44 @@ It is intended to become the primary GUI for:
 OpenRSC remains authoritative.
 
 The browser never becomes a second game server and never gains arbitrary access to mutable Java objects.
+
+## Admin Extensions
+
+Admin 2026 can host specialized tools as **Admin Extensions** without absorbing every tool into the core frontend repository or bundle.
+
+The first working extension is the **World Viewer**, backed by `rsc-map-renderer-observe`.
+
+Current integration level:
+
+```text
+Phase C hosted iframe        complete
+Phase B context bridge       initial implementation complete
+Phase A native React import  future
+```
+
+The current bridge provides:
+
+- a generic extension registry and host;
+- the `/world` Admin route;
+- configurable standalone viewer URL;
+- versioned `viewer.ready` handshake;
+- origin validation in both directions;
+- Admin -> viewer `context.changed`;
+- viewer -> Admin `context.applied`;
+- selected server name context;
+- independently hosted/fail-soft renderer behavior.
+
+The full static 3D world has been browser-verified through the Admin extension. The next world-specific boundary is a live `Observer[]` or authoritative world-state source.
+
+See:
+
+- `docs/architecture-v0.0.5.md` — current high-level Mermaid system map
+- `docs/admin-extensions.md`
+- `docs/world-observer-extension.md`
+
+The ownership rule is:
+
+> **Native in experience, independent in implementation.**
 
 ## Core product principle
 
