@@ -502,7 +502,7 @@ Still mock/planned:
 
 The backend status contract and local listener properties are documented in `admin-2026/docs/backend-api.md`.
 
-Server status, plugin inventory, online-player summaries, and the login/logout SSE activity stream are now live. The next implementation milestone is authenticated operator identity, capability authorization, and the mutation audit contract before any write endpoint is introduced.
+Server status, plugin inventory, online-player summaries, login/logout SSE, and the initial local-development operator/capability/audit foundation are live. The next implementation milestone is the first mutation prerequisite slice: audit player-message behavior, add reusable authorization enforcement and persistent audit recording, then introduce a narrowly scoped write endpoint.
 
 ### Local frontend development
 

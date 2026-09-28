@@ -20,8 +20,10 @@ Implemented:
 - `GET /admin/api/events` (Server-Sent Events)
 - support for multiple in-process OpenRSC servers through `Server.serversList`
 - frontend Vite proxy to the admin listener
+- local-development operator authentication/session introspection
+- first capability-gated, audited online-player alert mutation
 
-No authentication, mutation endpoints, or live-event transport exist yet.
+Additional mutations remain disabled until they are audited and granted operation-by-operation.
 
 ## Enable the listener
 
@@ -90,6 +92,79 @@ Response shape:
   ]
 }
 ```
+## Operator session endpoint
+
+```http
+GET /admin/api/session
+```
+
+This endpoint is the first authenticated Admin 2026 boundary.
+
+The current mode is explicitly for local development and is configured through JVM properties:
+
+```text
+openrsc.admin.authToken
+openrsc.admin.operator
+openrsc.admin.group
+```
+
+When auth is not configured, the endpoint returns:
+
+```http
+HTTP/1.1 503 Service Unavailable
+```
+
+```json
+{
+  "authMode": "local-bearer",
+  "error": "auth_not_configured"
+}
+```
+
+When configured, a valid bearer token resolves to an `AdminOperator` with OpenRSC group metadata and a conservative capability set. The configured token is never returned by the API.
+
+The session payload reports `mutationsEnabled` based on whether the authenticated operator currently holds an implemented mutation capability. The first implemented capability is `players.message`.
+
+See `admin-2026/docs/auth-and-audit.md` for capability mapping, audit contract, limitations, and production-session direction.
+
+## First mutation endpoint
+
+```http
+POST /admin/api/players/message
+Authorization: Bearer <local-development token>
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "serverName": "Runescape",
+  "databaseId": 42,
+  "message": "Please meet an administrator in Lumbridge."
+}
+```
+
+The first operation deliberately mirrors the existing moderator alert behavior:
+
+- target must be an online player
+- message is trimmed, required, and capped at 240 characters
+- execution is marshalled onto the OpenRSC game-event handler
+- clients supporting message boxes receive an administrator alert box
+- all clients receive an administrator server message
+- the browser cannot send raw `::commands`
+
+Authorization requires `players.message`. The initial group mapping grants it to Owner, Admin, Super Moderator, Moderator, and Player Moderator, matching the existing `::alert` command boundary.
+
+Every authorized mutation attempt receives a request ID and produces a typed result. Success and operation failures are persisted as `Admin2026Audit` JSON records through OpenRSC's existing `GameLogger` / `generic_logs` path.
+
+Observed local verification:
+
+- unauthenticated session request → `401 unauthorized`
+- authenticated Admin session → reports `players.message` and `mutationsEnabled: true`
+- offline player mutation → `404 player_not_online`
+- the failed mutation was confirmed persisted in SQLite `generic_logs`
+
 ## Live event endpoint
 
 ```http

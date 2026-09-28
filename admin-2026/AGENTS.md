@@ -43,19 +43,13 @@ For frontend work, preserve the domain-oriented structure described in `docs/gui
 
 ## Current recommended next slice
 
-Prefer **authentication, capability mapping, and audit contract** next. Status, plugin inventory, online-player summaries, and login/logout SSE are live.
+The read-only control plane and initial auth/capability/audit foundation are live.
 
-The running default world immediately provides substantial plugin data even with zero connected players:
+Before the first mutation, audit the existing **player message** behavior and permissions, add a reusable server-side capability guard, choose audit persistence, and add denied/allowed-path tests.
 
-- loaded plugin classes
-- trigger registrations
-- quests
-- minigames
-- shops
+Read `admin-2026/docs/auth-and-audit.md` before working on authentication or mutations.
 
-Use a DTO/snapshot boundary. If `PluginHandler` needs a new accessor, return immutable/snapshot metadata rather than exposing its mutable maps, instances, or loader directly.
-
-Follow plugin inventory with a small `PlayerSummary` API. The initial player contract should exclude IP addresses and other sensitive account/security data.
+Mutation capabilities are intentionally defined but **not granted** by the current default policy.
 
 ## Progress tracking
 

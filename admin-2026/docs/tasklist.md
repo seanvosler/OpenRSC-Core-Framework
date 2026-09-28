@@ -12,15 +12,19 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ## Doing
 
-### Next vertical slice — authentication, capabilities, and audit contract
+### Next vertical slice — first mutation browser integration
 
-- [ ] Define the first local-development operator authentication mechanism.
-- [ ] Map existing OpenRSC groups to default dashboard capability bundles.
-- [ ] Define capability identifiers for read and mutation surfaces.
-- [ ] Define transport-safe authenticated-operator/session DTOs.
-- [ ] Define the mutation audit record contract before adding writes.
-- [ ] Add read-only auth/session introspection endpoint.
-- [ ] Keep all mutation endpoints disabled until authorization + audit checks exist.
+See `admin-2026/docs/auth-and-audit.md` for the current security model.
+
+- [x] Audit the existing OpenRSC player-alert implementation and permission rules.
+- [x] Add a reusable capability authorization guard for authenticated operators.
+- [x] Persist mutation audit records through existing OpenRSC logging infrastructure.
+- [x] Define typed mutation result/error contracts.
+- [x] Grant `players.message` only to groups matching the existing moderator alert permission boundary.
+- [x] Add authenticated `POST /admin/api/players/message` for online-player alerts.
+- [ ] Add Java test coverage for authenticated/unauthenticated/capability-denied paths.
+- [ ] Add the browser operator-session/action flow and confirmation UX.
+- [ ] Verify successful delivery end-to-end against a real logged-in client.
 
 ### Phase 0 — Inventory and baseline
 
@@ -32,7 +36,7 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - [ ] Inventory logging/history tables and queries.
 - [ ] Inventory snapshots and existing debug utilities.
 - [ ] Define initial DTO/query/command/event conventions.
-- [ ] Define initial authentication and capability approach.
+- [x] Define initial authentication and capability approach.
 - [ ] Define backend verification/test strategy.
 ### GUI foundation
 
@@ -83,9 +87,11 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ### Phase 3 — Operate
 
-- [ ] Map OpenRSC groups to dashboard capabilities.
-- [ ] Add mutation audit integration.
-- [ ] Add message, teleport, kick, mute, and ban actions.
+- [x] Map OpenRSC groups to conservative read capability bundles.
+- [ ] Grant additional mutation capabilities operation-by-operation after command audits.
+- [x] Add mutation audit integration for the first operation.
+- [x] Add online-player message/alert action.
+- [ ] Add teleport, kick, mute, and ban actions.
 - [ ] Add broadcast, save-all, and graceful restart actions.
 - [ ] Add selected spawn/debug utilities.
 - [ ] Add confirmation/danger levels and audit-history UI.
@@ -125,6 +131,19 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - [ ] Add new server capabilities only with explicit rationale and tests.
 
 ## Done
+
+### Auth/capability/audit foundation — 2026-09-26
+
+- [x] Define stable read and future mutation capability identifiers.
+- [x] Map OpenRSC groups to conservative default read capability bundles.
+- [x] Add transport-safe `AdminOperator` identity/session metadata.
+- [x] Add local-development bearer-token authentication service.
+- [x] Add read-only `GET /admin/api/session` introspection endpoint.
+- [x] Add mutation `AdminAuditRecord` contract.
+- [x] Keep mutation capabilities ungranted and mutation endpoints absent.
+- [x] Document the production-session direction and SSE authentication constraint.
+- [x] Verify `auth_not_configured` behavior against a running default world.
+- [ ] Add normal Java test coverage for successful/invalid token paths when a dedicated admin test harness is available.
 
 ### Login/logout event stream vertical slice — 2026-09-26
 

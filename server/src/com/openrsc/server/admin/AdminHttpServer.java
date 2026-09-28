@@ -8,7 +8,9 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -16,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +64,8 @@ public final class AdminHttpServer {
 			httpServer.createContext("/admin/api/plugins", AdminHttpServer::handlePlugins);
 			httpServer.createContext("/admin/api/players", AdminHttpServer::handlePlayers);
 			httpServer.createContext("/admin/api/events", AdminHttpServer::handleEvents);
+			httpServer.createContext("/admin/api/session", AdminHttpServer::handleSession);
+			httpServer.createContext("/admin/api/players/message", AdminHttpServer::handlePlayerMessage);
 
 			final AtomicInteger threadNumber = new AtomicInteger(1);
 			executor = Executors.newFixedThreadPool(8, runnable -> {
@@ -161,6 +166,219 @@ public final class AdminHttpServer {
 			.put("servers", playerLists);
 
 		sendJson(exchange, 200, response);
+	}
+
+	private static void handleSession(final HttpExchange exchange) throws IOException {
+		if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "GET");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		if (!AdminAuthService.isConfigured()) {
+			sendJson(
+				exchange,
+				503,
+				new JSONObject()
+					.put("error", "auth_not_configured")
+					.put("authMode", "local-bearer")
+			);
+			return;
+		}
+
+		final AdminOperator operator =
+			AdminAuthService.authenticate(exchange.getRequestHeaders().getFirst("Authorization"));
+
+		if (operator == null) {
+			exchange.getResponseHeaders().set("WWW-Authenticate", "Bearer");
+			sendJson(
+				exchange,
+				401,
+				new JSONObject()
+					.put("error", "unauthorized")
+					.put("authMode", "local-bearer")
+			);
+			return;
+		}
+
+		sendJson(
+			exchange,
+			200,
+			new JSONObject()
+				.put("authMode", "local-bearer")
+				.put("operator", operator.toJson())
+				.put("mutationsEnabled", operator.hasCapability(AdminCapability.PLAYERS_MESSAGE))
+		);
+	}
+
+
+	private static void handlePlayerMessage(final HttpExchange exchange) throws IOException {
+		if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "POST");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		final AdminAuthorizationResult authorization = AdminAuthorizationService.authorize(
+			exchange.getRequestHeaders().getFirst("Authorization"),
+			AdminCapability.PLAYERS_MESSAGE
+		);
+		if (!authorization.isAuthorized()) {
+			sendAuthorizationFailure(exchange, authorization);
+			return;
+		}
+
+		final String requestId = UUID.randomUUID().toString();
+		final AdminOperator operator = authorization.getOperator();
+
+		final JSONObject body;
+		try {
+			body = readJsonBody(exchange);
+		} catch (final Exception ex) {
+			sendJson(
+				exchange,
+				400,
+				AdminMutationResult.failure(
+					requestId,
+					"players.message",
+					null,
+					null,
+					"invalid_json",
+					"Request body must be valid JSON"
+				).toJson()
+			);
+			return;
+		}
+
+		final String serverName = body.optString("serverName", "").trim();
+		final int databaseId = body.optInt("databaseId", -1);
+		final String message = body.optString("message", "");
+
+		if (serverName.isEmpty() || databaseId <= 0) {
+			sendJson(
+				exchange,
+				400,
+				AdminMutationResult.failure(
+					requestId,
+					"players.message",
+					serverName,
+					databaseId <= 0 ? null : "player:" + databaseId,
+					"invalid_target",
+					"serverName and a positive databaseId are required"
+				).toJson()
+			);
+			return;
+		}
+
+		final Server server = Server.serversList.get(serverName);
+		if (server == null) {
+			sendJson(
+				exchange,
+				404,
+				AdminMutationResult.failure(
+					requestId,
+					"players.message",
+					serverName,
+					"player:" + databaseId,
+					"server_not_found",
+					"Server not found"
+				).toJson()
+			);
+			return;
+		}
+
+		final AdminMutationResult result = AdminPlayerActions.sendModeratorAlert(
+			server,
+			databaseId,
+			message,
+			requestId
+		);
+
+		AdminAuditService.record(
+			server,
+			new AdminAuditRecord(
+				System.currentTimeMillis(),
+				requestId,
+				operator,
+				AdminCapability.PLAYERS_MESSAGE,
+				"players.message",
+				serverName,
+				"player:" + databaseId,
+				result.isSuccess(),
+				result.getErrorCode()
+			)
+		);
+
+		final int statusCode;
+		if (result.isSuccess()) {
+			statusCode = 200;
+		} else if ("player_not_online".equals(result.getErrorCode())) {
+			statusCode = 404;
+		} else if ("message_required".equals(result.getErrorCode())
+			|| "message_too_long".equals(result.getErrorCode())) {
+			statusCode = 400;
+		} else {
+			statusCode = 503;
+		}
+		sendJson(exchange, statusCode, result.toJson());
+	}
+
+	private static void sendAuthorizationFailure(
+		final HttpExchange exchange,
+		final AdminAuthorizationResult authorization
+	) throws IOException {
+		switch (authorization.getStatus()) {
+			case AUTH_NOT_CONFIGURED:
+				sendJson(
+					exchange,
+					503,
+					new JSONObject()
+						.put("error", "auth_not_configured")
+						.put("authMode", "local-bearer")
+				);
+				return;
+			case UNAUTHORIZED:
+				exchange.getResponseHeaders().set("WWW-Authenticate", "Bearer");
+				sendJson(
+					exchange,
+					401,
+					new JSONObject()
+						.put("error", "unauthorized")
+						.put("authMode", "local-bearer")
+				);
+				return;
+			case FORBIDDEN:
+				sendJson(
+					exchange,
+					403,
+					new JSONObject()
+						.put("error", "capability_denied")
+						.put("capability", AdminCapability.PLAYERS_MESSAGE.getId())
+				);
+				return;
+			default:
+				throw new IllegalStateException("Unexpected authorization status");
+		}
+	}
+
+	private static JSONObject readJsonBody(final HttpExchange exchange) throws IOException {
+		final int maxBytes = 16 * 1024;
+		try (
+			InputStream input = exchange.getRequestBody();
+			ByteArrayOutputStream output = new ByteArrayOutputStream()
+		) {
+			final byte[] buffer = new byte[1024];
+			int total = 0;
+			int read;
+			while ((read = input.read(buffer)) != -1) {
+				total += read;
+				if (total > maxBytes) {
+					throw new IOException("request_body_too_large");
+				}
+				output.write(buffer, 0, read);
+			}
+			return new JSONObject(new String(output.toByteArray(), StandardCharsets.UTF_8));
+		}
 	}
 
 	private static void handleEvents(final HttpExchange exchange) throws IOException {
