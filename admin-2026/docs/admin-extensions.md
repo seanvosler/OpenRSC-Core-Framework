@@ -28,6 +28,21 @@ Admin Extension
 
 Use **extension**, not **plugin**, for this concept so the frontend/tooling architecture does not collide with OpenRSC's established plugin vocabulary.
 
+## Current implementation status
+
+As of 2026-09-27, the first extension-host slice is implemented:
+
+- static extension registry;
+- reusable iframe `ExtensionHost`;
+- `/world` registered as `world-viewer`;
+- configurable hosted URL;
+- loading/reload/standalone states;
+- versioned, origin-validated two-way bridge;
+- selected server-name context;
+- unit and browser validation.
+
+This is currently **Level C plus the first Level B context bridge**. Level A native React integration remains future work.
+
 ## Product principle
 
 Admin 2026 should be a **control plane and host for specialized OpenRSC tools**, not necessarily the implementation home of every tool.

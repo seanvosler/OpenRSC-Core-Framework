@@ -101,9 +101,6 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 
 ### Phase 5 — World & developer tooling
 
-- [x] Add generic hosted World Viewer Admin Extension with iframe bridge.
-- [x] Validate full static 3D world rendering from baked assets.
-- [x] Add versioned two-way Admin/viewer context handshake.
 - [ ] Connect a live Observer[] / world-state source.
 - [ ] Add entity, shop, spawn, and snapshot inspectors.
 - [ ] Add live world observation mode.
@@ -130,6 +127,21 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - [ ] Add new server capabilities only with explicit rationale and tests.
 
 ## Done
+
+### World Viewer Admin Extension bridge — 2026-09-27
+
+- [x] Add generic Admin Extension descriptor/registry/host.
+- [x] Replace the `/world` placeholder with the hosted World Viewer extension.
+- [x] Keep the renderer independently runnable and independently failure-isolated.
+- [x] Add configurable `VITE_WORLD_VIEWER_URL`.
+- [x] Add versioned `viewer.ready` handshake with strict origin validation.
+- [x] Add Admin -> viewer `context.changed` and viewer -> Admin `context.applied`.
+- [x] Pass selected Admin server name through the bridge.
+- [x] Reuse upstream `gh-pages` baked assets for local development without rebaking Java assets.
+- [x] Add local-only compatibility aliases for the published asset-layout revision.
+- [x] Browser-verify WebGL initialization and complete 747-cell world loading with no viewer request failures.
+- [x] Add repeatable local setup/dev scripts.
+- [x] Document the remaining live `Observer[]` / server-world-state boundary.
 
 ### Login/logout event stream vertical slice — 2026-09-26
 
@@ -204,6 +216,7 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - **2026-09-26:** Completed online-player summaries and a live Players page; the default world correctly renders a zero-player empty state.
 - **2026-09-26:** Completed bounded login/logout event plumbing and live SSE activity feed; real client lifecycle validation remains pending.
 - **2026-09-26:** Authentication/capabilities/audit contract is now the active prerequisite for the first mutation.
+- **2026-09-27:** Completed the hosted/connected World Viewer Admin Extension bridge; full static 3D world rendering is verified and live world-state transport is the next world lane.
 
 ## Back Burner
 

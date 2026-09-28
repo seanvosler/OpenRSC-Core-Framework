@@ -1,24 +1,58 @@
-# Admin 2026 — Next Read-Only Slices
+# Admin 2026 — Current Implementation Lanes
 
-_Last updated: 2026-09-26_
+_Last updated: 2026-09-27_
 
-This document captures the immediate implementation options after the live server-status milestone.
+This document captures the current implementation ordering and preserves completed read-only slice notes as historical design context.
 
 ## Status update
 
-The plugin inventory and online-player summary slices are implemented and live. The login/logout event infrastructure is also implemented over SSE, with real client-driven lifecycle validation still pending. Authentication/capabilities/audit are now the active prerequisite before mutations.
+The initial read-only foundation is implemented:
+
+- live status/tick metrics;
+- plugin/content inventory;
+- online player summaries;
+- bounded login/logout SSE events;
+- generic hosted Admin Extension support;
+- World Viewer iframe integration with a versioned two-way context bridge;
+- browser-verified static 3D world rendering.
+
+Authentication/capabilities/audit are the active prerequisite before mutations.
+
+The World Viewer may continue in parallel as a **read-only** lane. Its next meaningful boundary is a live `Observer[]` / world-state source; server-native work is currently gated by the local Java/JDK build environment.
 
 ## Recommendation
 
-Implement **plugin inventory first**, followed by **online player summaries**, then **login/logout events**.
+Keep two coordinated lanes:
 
-This ordering maximizes visible product value while keeping the system read-only.
+```text
+PRIMARY SECURITY LANE
+authentication
+   ↓
+capability mapping
+   ↓
+audit contract
+   ↓
+first explicit mutation
+
+PARALLEL READ-ONLY WORLD LANE
+hosted World Viewer        complete
+   ↓
+Admin context bridge       initial complete
+   ↓
+live observation source
+   ↓
+entity selection/inspect
+   ↓
+server-truth comparison
+```
+
+Do not let World Viewer integration introduce mutation paths ahead of the security lane.
 
 ---
 
-## 1. Plugin inventory
+## Completed reference — 1. Plugin inventory
 
-### Why this should be next
+### Why this was first
 
 The default local world provides useful plugin data immediately, even with zero connected players.
 
@@ -128,7 +162,7 @@ Do not add reload controls, invocation timing, or error instrumentation in the s
 
 ---
 
-## 2. Online player summaries
+## Completed reference — 2. Online player summaries
 
 ### Existing source surfaces
 
@@ -196,7 +230,7 @@ Do not create fake server-side players solely for the dashboard.
 
 ---
 
-## 3. Login/logout events
+## Completed reference — 3. Login/logout events
 
 Once player summaries exist, login/logout is the smallest useful live event stream.
 
@@ -231,23 +265,22 @@ A player-message action remains a good first mutation after those foundations ex
 ## Immediate implementation sequence
 
 ```text
-PluginHandler read-only snapshots
+Authentication/capability/audit contract
         ↓
-PluginSummary DTO
+read-only auth/session introspection
         ↓
-GET /admin/api/plugins
+first explicit audited mutation
         ↓
-typed frontend query
+player detail / richer inspectors
+
+Parallel:
+World Viewer extension
         ↓
-live plugin cards
+live Observer[] or bounded server-world snapshots
         ↓
-real Plugins table/page
+entity selection into Admin inspectors
         ↓
-PlayerSummary API
-        ↓
-live player table
-        ↓
-login/logout event stream
+observer truth vs server truth
 ```
 
 This sequence preserves the project's main rule:

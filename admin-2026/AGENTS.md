@@ -2,7 +2,7 @@
 
 Guidance for agentic coding workers contributing to Admin 2026 in the OpenRSC Core Framework.
 
-Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, and `admin-2026/docs/gui-stack.md` before implementing substantive Admin 2026 work. Read `admin-2026/docs/next-slices.md` when working on the current plugin/player/event sequence.
+Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, and `admin-2026/docs/gui-stack.md` before implementing substantive Admin 2026 work. Read `admin-2026/docs/next-slices.md` for the current lane ordering. For extension work, also read `admin-2026/docs/admin-extensions.md` and `admin-2026/docs/world-observer-extension.md`.
 
 ## Mission
 
@@ -36,7 +36,10 @@ Current facts:
 - React Flow is already used for the plugin-flow concept
 - Vitest + React Testing Library cover provider and status-client behavior
 - `npm run build` currently succeeds
-- OpenAPI client generation, reusable DataTable/form abstractions, Playwright E2E, and route-level code splitting remain unfinished
+- the hosted World Viewer Admin Extension is working at `/world` with a versioned, origin-validated two-way context bridge
+- the full static 3D world has been browser-verified through the extension using baked assets
+- live `Observer[]` / authoritative world-state transport is not implemented yet
+- OpenAPI client generation, reusable form abstractions, Playwright E2E baseline, and route-level code splitting remain unfinished
 - the current read-only backend contract is documented in `docs/backend-api.md`
 
 For frontend work, preserve the domain-oriented structure described in `docs/gui-stack.md`. Generated API code belongs in `src/api/generated/` and must never be edited manually.
@@ -45,17 +48,11 @@ For frontend work, preserve the domain-oriented structure described in `docs/gui
 
 Prefer **authentication, capability mapping, and audit contract** next. Status, plugin inventory, online-player summaries, and login/logout SSE are live.
 
-The running default world immediately provides substantial plugin data even with zero connected players:
+The World Viewer is a parallel read-only lane, not a reason to skip the security prerequisite for mutations. Its next meaningful step is a live observation/world-state source after the Java server toolchain is available.
 
-- loaded plugin classes
-- trigger registrations
-- quests
-- minigames
-- shops
+Keep the active security lane small and explicit. Mutation work should not begin until operator identity, capability checks, and audit semantics are enforced end to end.
 
-Use a DTO/snapshot boundary. If `PluginHandler` needs a new accessor, return immutable/snapshot metadata rather than exposing its mutable maps, instances, or loader directly.
-
-Follow plugin inventory with a small `PlayerSummary` API. The initial player contract should exclude IP addresses and other sensitive account/security data.
+For the parallel World Viewer lane, keep the renderer source-agnostic and read-only. Prefer a bounded transport-safe world/observer DTO seam over serializing live OpenRSC model objects.
 
 ## Progress tracking
 
