@@ -18,6 +18,7 @@ public final class WorldPlayerSnapshot {
 	private final int y;
 	private final int combatLevel;
 	private final boolean inCombat;
+	private final Integer direction;
 	private final boolean sleeping;
 	private final boolean skulled;
 	private final int hits;
@@ -36,6 +37,8 @@ public final class WorldPlayerSnapshot {
 		y = player.getY();
 		combatLevel = player.getCombatLevel();
 		inCombat = player.inCombat();
+		final int sprite = player.getSprite();
+		direction = sprite >= 0 && sprite <= 7 ? sprite : null;
 		sleeping = player.isSleeping();
 		skulled = player.isSkulled();
 		hits = player.getSkills().getLevel(Skill.HITS.id());
@@ -70,6 +73,7 @@ public final class WorldPlayerSnapshot {
 			.put("y", y)
 			.put("combatLevel", combatLevel)
 			.put("inCombat", inCombat)
+			.put("direction", direction == null ? JSONObject.NULL : direction)
 			.put("sleeping", sleeping)
 			.put("skulled", skulled)
 			.put("hits", hits)

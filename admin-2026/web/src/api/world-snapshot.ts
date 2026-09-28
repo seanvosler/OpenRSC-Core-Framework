@@ -16,6 +16,7 @@ export interface WorldPlayerSnapshot {
   y: number
   combatLevel: number
   inCombat: boolean
+  direction: number | null
   sleeping: boolean
   skulled: boolean
   hits: number
@@ -30,6 +31,7 @@ export interface WorldNpcSnapshot {
   x: number
   y: number
   inCombat: boolean
+  direction: number | null
   hits: number
   maxHits: number
 }

@@ -15,6 +15,7 @@ public final class WorldNpcSnapshot {
 	private final int x;
 	private final int y;
 	private final boolean inCombat;
+	private final Integer direction;
 	private final int hits;
 	private final int maxHits;
 
@@ -25,6 +26,8 @@ public final class WorldNpcSnapshot {
 		x = npc.getX();
 		y = npc.getY();
 		inCombat = npc.inCombat();
+		final int sprite = npc.getSprite();
+		direction = sprite >= 0 && sprite <= 7 ? sprite : null;
 		hits = npc.getSkills().getLevel(Skill.HITS.id());
 		maxHits = npc.getSkills().getMaxStat(Skill.HITS.id());
 	}
@@ -41,6 +44,7 @@ public final class WorldNpcSnapshot {
 			.put("x", x)
 			.put("y", y)
 			.put("inCombat", inCombat)
+			.put("direction", direction == null ? JSONObject.NULL : direction)
 			.put("hits", hits)
 			.put("maxHits", maxHits);
 	}
