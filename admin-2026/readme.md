@@ -83,6 +83,7 @@ The full static 3D world has been browser-verified through the Admin extension. 
 
 See:
 
+- `docs/architecture-v0.0.5.md` — current high-level Mermaid system map
 - `docs/admin-extensions.md`
 - `docs/world-observer-extension.md`
 

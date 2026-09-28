@@ -1,5 +1,7 @@
 # World Observer Admin Extension
 
+> High-level system diagram: [`architecture-v0.0.5.md`](./architecture-v0.0.5.md)
+
 > Architecture and integration plan for using rsc-map-renderer-observe as the world-visualization and observation engine for Admin 2026.
 
 Repositories:

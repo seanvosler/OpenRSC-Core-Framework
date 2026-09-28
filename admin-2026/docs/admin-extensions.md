@@ -1,5 +1,7 @@
 # Admin Extensions
 
+> High-level system diagram: [`architecture-v0.0.5.md`](./architecture-v0.0.5.md)
+
 > Architecture concept for optional tools that appear as first-class parts of Admin 2026 without requiring every tool to live inside the Admin repository or runtime.
 
 ## Purpose

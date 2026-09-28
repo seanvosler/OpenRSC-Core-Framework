@@ -217,6 +217,7 @@ Use only **Doing**, **To Do**, **Done**, and **Back Burner**. Keep **Doing** sma
 - **2026-09-26:** Completed bounded login/logout event plumbing and live SSE activity feed; real client lifecycle validation remains pending.
 - **2026-09-26:** Authentication/capabilities/audit contract is now the active prerequisite for the first mutation.
 - **2026-09-27:** Completed the hosted/connected World Viewer Admin Extension bridge; full static 3D world rendering is verified and live world-state transport is the next world lane.
+- **2026-09-27:** Published the Mermaid system architecture snapshot as `docs/architecture-v0.0.5.md`.
 
 ## Back Burner
 

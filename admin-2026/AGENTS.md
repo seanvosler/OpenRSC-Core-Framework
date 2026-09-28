@@ -2,7 +2,7 @@
 
 Guidance for agentic coding workers contributing to Admin 2026 in the OpenRSC Core Framework.
 
-Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, and `admin-2026/docs/gui-stack.md` before implementing substantive Admin 2026 work. Read `admin-2026/docs/next-slices.md` for the current lane ordering. For extension work, also read `admin-2026/docs/admin-extensions.md` and `admin-2026/docs/world-observer-extension.md`.
+Read this file, `admin-2026/readme.md`, `admin-2026/docs/tasklist.md`, `admin-2026/docs/gui-stack.md`, and `admin-2026/docs/architecture-v0.0.5.md` before implementing substantive Admin 2026 work. Read `admin-2026/docs/next-slices.md` for the current lane ordering. For extension work, also read `admin-2026/docs/admin-extensions.md` and `admin-2026/docs/world-observer-extension.md`.
 
 ## Mission
 
