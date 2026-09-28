@@ -23,7 +23,7 @@ See `admin-2026/docs/auth-and-audit.md` for the current security model.
 - [x] Grant `players.message` only to groups matching the existing moderator alert permission boundary.
 - [x] Add authenticated `POST /admin/api/players/message` for online-player alerts.
 - [ ] Add Java test coverage for authenticated/unauthenticated/capability-denied paths.
-- [ ] Add the browser operator-session/action flow and confirmation UX.
+- [x] Add the browser operator-session/action flow for the first player alert mutation.
 - [ ] Verify successful delivery end-to-end against a real logged-in client.
 
 ### Phase 0 — Inventory and baseline
