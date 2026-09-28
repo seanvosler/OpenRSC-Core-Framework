@@ -88,7 +88,7 @@ public class Crypto {
     public static byte[] decryptRSA(byte[] data, int offset, int length) {
         byte newData[] = new byte[length];
         System.arraycopy(data, offset, newData, 0, length);
-        return new BigInteger(newData).modPow(privateKey.getPrivateExponent(), privateKey.getModulus()).toByteArray();
+        return new BigInteger(1, newData).modPow(privateKey.getPrivateExponent(), privateKey.getModulus()).toByteArray();
     }
 
     public static void generateRSAKeys() {

@@ -614,7 +614,66 @@ public class LoginPacketHandler {
 							server.getLoginExecutor().add(characterCreateRequest);
 						}
 					} else {
-						// mudclients 93+
+						// rsc-c / authentic 178-203 registration packet:
+						// marker byte, version short, limit30 byte, RSA length byte, RSA block.
+						if (packet.getLength() == 70) {
+							packet.readUnsignedByte(); // marker / reconnect-style byte
+							final int clientVersion = packet.readUnsignedShort();
+							packet.readShort(); // limit30 + fixed RSA block length
+
+							final int rsaLength = packet.getReadableBytes();
+							final ByteBuffer loginBlock = ByteBuffer.wrap(
+								Crypto.decryptRSA(packet.readBytes(rsaLength), 0, rsaLength)
+							);
+
+							if (loginBlock.get() != 10) {
+								LOGGER.warn("Unexpected registration RSA checksum for client {}", clientVersion);
+							}
+
+							for (int i = 0; i < 4; i++) {
+								loginBlock.getInt();
+							}
+
+							loginBlock.getInt(); // uid / random.dat
+
+							final StringBuilder usernameBuilder = new StringBuilder();
+							char ch;
+							while (loginBlock.hasRemaining()
+								&& (ch = (char) (loginBlock.get() & 0xFF)) != 10) {
+								usernameBuilder.append(ch);
+							}
+
+							final StringBuilder passwordBuilder = new StringBuilder();
+							while (loginBlock.hasRemaining()
+								&& (ch = (char) (loginBlock.get() & 0xFF)) != 10) {
+								passwordBuilder.append(ch);
+							}
+
+							final String username = usernameBuilder.toString().trim();
+							final String password = passwordBuilder.toString().trim();
+
+							LOGGER.info(
+								"Parsed modern registration packet for {} using client {}",
+								username,
+								clientVersion
+							);
+
+							if (server.getPacketFilter().shouldAllowLogin(IP, true)) {
+								final CharacterCreateRequest characterCreateRequest =
+									new CharacterCreateRequest(
+										server,
+										channel,
+										username,
+										password,
+										true,
+										clientVersion
+									);
+								server.getLoginExecutor().add(characterCreateRequest);
+							}
+							break;
+						}
+
+						// mudclients 93+ legacy registration formats
 						// Handle register packet
 						int clientVersion = packet.readUnsignedShort();
 						if (clientVersion >= 204) { // note that register packet doesn't actually exist in 204+, but this is mostly copied from 127 + utilization of RSA
