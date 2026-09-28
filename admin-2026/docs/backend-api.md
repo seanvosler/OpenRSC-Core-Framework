@@ -166,6 +166,14 @@ Observed local verification:
 - offline player mutation → `404 player_not_online`
 - the failed mutation was confirmed persisted in SQLite `generic_logs`
 
+## Authoritative world snapshot
+
+`GET /admin/api/world/snapshot?serverName=Runescape` returns a versioned, transport-safe read-only snapshot copied from the selected OpenRSC world. Version 1 currently includes online players, all live NPCs, and current ground items.
+
+Player snapshots include identity, server index, coordinates, combat level, HP, combat/sleep/skull state, and appearance. NPC snapshots include definition identity, server index, coordinates, HP, and combat state. Ground-item snapshots include definition identity, amount, and coordinates.
+
+The endpoint never serializes mutable `World`, `Player`, `Npc`, or `GroundItem` objects directly. The current browser integration polls the full snapshot once per second and forwards it through the explicit World Viewer extension bridge. This is a development/proof transport, not the intended high-population architecture; dynamic scenery and ephemeral events should move to bounded deltas/streams before scaling.
+
 ## Live event endpoint
 
 ```http

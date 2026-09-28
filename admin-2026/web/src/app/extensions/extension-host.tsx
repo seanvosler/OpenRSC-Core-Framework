@@ -10,9 +10,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 interface ExtensionHostProps {
   extension: AdminExtensionDescriptor
   context?: AdminExtensionContext
+  outboundMessages?: readonly AdminToExtensionMessage[]
 }
 
-export function ExtensionHost({ extension, context = { server: null } }: ExtensionHostProps) {
+export function ExtensionHost({
+  extension,
+  context = { server: null },
+  outboundMessages = [],
+}: ExtensionHostProps) {
   const [loadKey, setLoadKey] = useState(0)
   const [loaded, setLoaded] = useState(false)
   const [bridgeReady, setBridgeReady] = useState(false)
@@ -59,6 +64,14 @@ export function ExtensionHost({ extension, context = { server: null } }: Extensi
 
     iframeRef.current.contentWindow.postMessage(message, extensionOrigin)
   }, [bridgeReady, context, extensionOrigin])
+
+  useEffect(() => {
+    if (!bridgeReady || !extensionOrigin || !iframeRef.current?.contentWindow) return
+
+    for (const message of outboundMessages) {
+      iframeRef.current.contentWindow.postMessage(message, extensionOrigin)
+    }
+  }, [bridgeReady, extensionOrigin, outboundMessages])
 
   if (extension.mode !== 'iframe' || !extension.url) {
     return (

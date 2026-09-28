@@ -20,7 +20,12 @@ See `admin-2026/docs/auth-and-audit.md` and `admin-2026/docs/world-observer-exte
 - [ ] Verify `players.message` delivery end-to-end against a real logged-in client.
 - [x] Integrate the World Viewer as the first production-shaped Admin Extension.
 - [x] Verify `/world` bridge handshake, Runescape server context, WebGL canvas, and zero failed viewer requests.
-- [ ] Define the next read-only live world-state DTO/transport boundary separately from the hosted viewer integration.
+- [x] Add versioned authoritative world snapshot DTOs for players, NPCs, and ground items.
+- [x] Add `GET /admin/api/world/snapshot?serverName=...` and feed it into the World Viewer.
+- [x] Browser-verify live `sv` + synthetic players, 3,608 NPCs, and 1,019 ground items with zero viewer request failures.
+- [ ] Add dynamic scenery/wall-object state without retransmitting the full static world.
+- [ ] Add ephemeral combat/projectile/chat/action-bubble deltas.
+- [ ] Replace 1s full-snapshot polling with bounded delta/SSE or equivalent streaming before scaling to large populations.
 
 ### Phase 0 — Inventory and baseline
 

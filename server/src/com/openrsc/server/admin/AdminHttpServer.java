@@ -65,6 +65,7 @@ public final class AdminHttpServer {
 			httpServer.createContext("/admin/api/players", AdminHttpServer::handlePlayers);
 			httpServer.createContext("/admin/api/events", AdminHttpServer::handleEvents);
 			httpServer.createContext("/admin/api/session", AdminHttpServer::handleSession);
+			httpServer.createContext("/admin/api/world/snapshot", AdminHttpServer::handleWorldSnapshot);
 			httpServer.createContext("/admin/api/players/message", AdminHttpServer::handlePlayerMessage);
 
 			final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -166,6 +167,66 @@ public final class AdminHttpServer {
 			.put("servers", playerLists);
 
 		sendJson(exchange, 200, response);
+	}
+
+
+	private static void handleWorldSnapshot(final HttpExchange exchange) throws IOException {
+		if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+			exchange.getResponseHeaders().set("Allow", "GET");
+			sendJson(exchange, 405, new JSONObject().put("error", "method_not_allowed"));
+			return;
+		}
+
+		final String serverName = queryParameter(exchange, "serverName");
+		if (serverName == null || serverName.trim().isEmpty()) {
+			sendJson(
+				exchange,
+				400,
+				new JSONObject()
+					.put("error", "server_name_required")
+					.put("detail", "serverName query parameter is required")
+			);
+			return;
+		}
+
+		final Server server = Server.serversList.get(serverName);
+		if (server == null) {
+			sendJson(
+				exchange,
+				404,
+				new JSONObject()
+					.put("error", "server_not_found")
+					.put("serverName", serverName)
+			);
+			return;
+		}
+
+		sendJson(exchange, 200, WorldSnapshot.from(server).toJson());
+	}
+
+	private static String queryParameter(final HttpExchange exchange, final String key) {
+		final String query = exchange.getRequestURI().getRawQuery();
+		if (query == null || query.isEmpty()) {
+			return null;
+		}
+
+		for (final String pair : query.split("&")) {
+			final int equals = pair.indexOf('=');
+			final String rawKey = equals >= 0 ? pair.substring(0, equals) : pair;
+			if (!key.equals(urlDecode(rawKey))) {
+				continue;
+			}
+			return equals >= 0 ? urlDecode(pair.substring(equals + 1)) : "";
+		}
+		return null;
+	}
+
+	private static String urlDecode(final String value) {
+		try {
+			return java.net.URLDecoder.decode(value, "UTF-8");
+		} catch (final Exception ignored) {
+			return value;
+		}
 	}
 
 	private static void handleSession(final HttpExchange exchange) throws IOException {

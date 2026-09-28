@@ -112,6 +112,25 @@ public class RegionManager {
 	}
 
 	/**
+	 * Returns a detached read-only-friendly copy of every current ground item.
+	 *
+	 * Admin/diagnostic readers must not iterate the region-owned synchronized
+	 * multimap views directly from non-game threads.
+	 */
+	public List<GroundItem> snapshotGroundItems() {
+		final List<GroundItem> snapshot = new ArrayList<>();
+		for (final ConcurrentHashMap<Integer, Region> yRegions : regions.values()) {
+			for (final Region region : yRegions.values()) {
+				final Collection<GroundItem> groundItems = region.getGroundItems();
+				synchronized (groundItems) {
+					snapshot.addAll(groundItems);
+				}
+			}
+		}
+		return snapshot;
+	}
+
+	/**
 	 * Gets regions within range of the given location
 	 * @param location location
 	 * @return regions within range of the given location
