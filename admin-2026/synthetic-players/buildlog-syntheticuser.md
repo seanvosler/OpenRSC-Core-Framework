@@ -60,3 +60,7 @@ Goal: one live server-side synthetic user in a local OpenRSC test server.
 - Wired `/developer/synthetic-players` to the dedicated runtime read model.
 - Browser-verified three live synthetic actors and captured `~/Desktop/OpenRSC-Synthetic-Panel-Live.png`.
 - Spawn/Stop controls remain disabled pending the shared Admin auth/capability/audit mutation layer.
+
+- 2026-09-28: Investigated real-client invisibility. Region/world registration and normal nearby-player coordinate updates include synthetic actors; no synthetic/dummy filter exists in that observer path.
+- Found render fixture parity gap: normal PlayerService loading copies PlayerAppearance sprites into Player.wornItems, while synthetic bootstrap only set PlayerAppearance. Synthetic actors therefore exposed all-zero worn sprite slots to the real-client appearance packet.
+- Mirrored normal login initialization with setMale(...) and setWornItems(appearance.getSprites()). Direct Java compile passes. Real-client visual confirmation remains required.

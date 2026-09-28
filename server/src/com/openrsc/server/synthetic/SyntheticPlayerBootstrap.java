@@ -125,6 +125,11 @@ public final class SyntheticPlayerBootstrap {
         player.getSettings().setAppearance(
             new PlayerAppearance(hairColour, topColour, trouserColour, skinColour, head, body)
         );
+        // Normal account loading copies the base appearance sprites into wornItems.
+        // Synthetic players bypass PlayerService loading, so mirror that render-critical
+        // initialization explicitly or nearby real clients receive an all-zero appearance.
+        player.setMale(body == 2);
+        player.setWornItems(player.getSettings().getAppearance().getSprites());
 
         final int baseSpawnX = Integer.getInteger(
             SPAWN_X_PROPERTY,
